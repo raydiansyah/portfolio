@@ -30,3 +30,17 @@ dist-ssr
 
 # Asset pipeline intermediates
 scripts/.cache
+
+# Build / test artifacts
+coverage
+*.tsbuildinfo
+
+# Deploy & backend tooling (local state only)
+.vercel
+supabase/.temp
+supabase/.branches
+
+# Local AI / tooling caches
+.claude/settings.local.json
+.playwright-mcp
+graphify-out
