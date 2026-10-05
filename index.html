@@ -13,8 +13,14 @@
   <meta name="keywords" content="web developer, IT trainer, portfolio, React, TypeScript, Three.js, Surabaya" />
   <meta name="author" content="Ray Diansyah" />
 
-  <!-- The boat model is needed as soon as the engine boots; start fetching early. -->
-  <link rel="preload" href="/models/boat.glb" as="fetch" type="model/gltf-binary" crossorigin />
+  <!-- The boat model is needed as soon as the engine boots; start fetching early (public pages only). -->
+  <script>
+    if (!/^\/secure(\/|$)/.test(location.pathname)) {
+      var l = document.createElement('link');
+      l.rel = 'preload'; l.as = 'fetch'; l.type = 'model/gltf-binary'; l.crossOrigin = ''; l.href = '/models/boat.glb';
+      document.head.appendChild(l);
+    }
+  </script>
 
   <!-- Apply the stored theme before first paint to avoid a light/dark flash. -->
   <script>
