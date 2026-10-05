@@ -6,11 +6,12 @@ import { DESTINATIONS, DESTINATION_BY_ID, WORLD_RADIUS, islandCentre } from '../
 import { SECRETS } from '../data/discoveries'
 import { telemetry, useHarbor } from '../store'
 import type { DestinationId } from '../types'
+import { headingOf, mapX } from '../mapping'
 
 const R = WORLD_RADIUS
 const pad = (n: number) => String(n).padStart(2, '0')
 /** World XZ -> percentage offsets inside the square map (north is up, so SVG y = -z). */
-const pct = (x: number, z: number) => ({ left: `${((x + R) / (2 * R)) * 100}%`, top: `${((-z + R) / (2 * R)) * 100}%` })
+const pct = (x: number, z: number) => ({ left: `${((mapX(x) + R) / (2 * R)) * 100}%`, top: `${((-z + R) / (2 * R)) * 100}%` })
 
 /** Full world map dialog with destination picker and navigation actions. */
 export default function WorldMap() {
@@ -47,8 +48,8 @@ function MapBody() {
     let raf = 0
     const tick = () => {
       const { x, z, yaw } = telemetry.boat
-      boatRef.current?.setAttribute('transform', `translate(${x} ${-z}) rotate(${(yaw * 180) / Math.PI})`)
-      pathRef.current?.setAttribute('points', telemetry.path.map((p) => `${p.x},${-p.z}`).join(' '))
+      boatRef.current?.setAttribute('transform', `translate(${mapX(x)} ${-z}) rotate(${(headingOf(yaw) * 180) / Math.PI})`)
+      pathRef.current?.setAttribute('points', telemetry.path.map((p) => `${mapX(p.x)},${-p.z}`).join(' '))
       raf = requestAnimationFrame(tick)
     }
     tick()
@@ -80,11 +81,11 @@ function MapBody() {
 
           {DESTINATIONS.map((d) => {
             const c = islandCentre(d)
-            return <circle key={d.id} cx={c.x} cy={-c.z} r={d.islandRadius} fill="currentColor" fillOpacity={0.08} />
+            return <circle key={d.id} cx={mapX(c.x)} cy={-c.z} r={d.islandRadius} fill="currentColor" fillOpacity={0.08} />
           })}
 
           {SECRETS.filter((s) => secrets.includes(s.id)).map((s) => (
-            <rect key={s.id} x={s.position.x - 2} y={-s.position.z - 2} width={4} height={4} fill="var(--lantern)" opacity={0.8} />
+            <rect key={s.id} x={mapX(s.position.x) - 2} y={-s.position.z - 2} width={4} height={4} fill="var(--lantern)" opacity={0.8} />
           ))}
 
           <polyline

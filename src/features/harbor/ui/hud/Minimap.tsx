@@ -3,6 +3,7 @@ import { actions } from '../../controller'
 import { harborStore, telemetry } from '../../store'
 import { DESTINATIONS, islandCentre } from '../../data/destinations'
 import { SECRETS } from '../../data/discoveries'
+import { headingOf, mapX } from '../../mapping'
 
 const RANGE = 130 // meters from centre to edge
 const FRAME_MS = 66 // ~15 fps
@@ -24,7 +25,7 @@ function draw(ctx: CanvasRenderingContext2D, size: number, colors: Palette) {
   const { discovered, secrets } = harborStore.get()
   const c = size / 2
   const scale = c / RANGE
-  const sx = (wx: number) => c + (wx - bx) * scale
+  const sx = (wx: number) => c + (mapX(wx) - mapX(bx)) * scale
   const sy = (wz: number) => c - (wz - bz) * scale // north up
 
   ctx.clearRect(0, 0, size, size)
@@ -66,7 +67,7 @@ function draw(ctx: CanvasRenderingContext2D, size: number, colors: Palette) {
   const edge = c - 5
   for (const d of DESTINATIONS) {
     const known = discovered.includes(d.id)
-    const dx = (d.dock.x - bx) * scale
+    const dx = (mapX(d.dock.x) - mapX(bx)) * scale
     const dy = -(d.dock.z - bz) * scale
     const over = Math.max(Math.abs(dx), Math.abs(dy)) / edge
     if (over > 1) {
@@ -100,7 +101,7 @@ function draw(ctx: CanvasRenderingContext2D, size: number, colors: Palette) {
   // Boat
   ctx.save()
   ctx.translate(c, c)
-  ctx.rotate(yaw) // canvas rotation is clockwise, matching yaw toward +X (east)
+  ctx.rotate(headingOf(yaw)) // canvas rotation is clockwise, like compass headings
   ctx.fillStyle = colors.lantern
   ctx.beginPath()
   ctx.moveTo(0, -5)

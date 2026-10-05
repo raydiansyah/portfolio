@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { harborStore, telemetry } from '../../store'
 import { DESTINATIONS, DESTINATION_BY_ID } from '../../data/destinations'
 import type { Destination } from '../../types'
+import { bearingTo, headingOf } from '../../mapping'
 
 const WIDTH = 220
 const PX_PER_DEG = 1.2 // ±~92° visible on the tape
@@ -44,7 +45,7 @@ export function Compass() {
     const tick = () => {
       raf = requestAnimationFrame(tick)
       const { x, z, yaw } = telemetry.boat
-      const heading = wrap360(toDeg(yaw))
+      const heading = wrap360(toDeg(headingOf(yaw)))
 
       if (stripRef.current) {
         const offset = WIDTH / 2 - (heading + 180) * PX_PER_DEG
@@ -63,7 +64,7 @@ export function Compass() {
         marker.style.opacity = '0'
         return
       }
-      const bearing = toDeg(Math.atan2(target.dock.x - x, target.dock.z - z))
+      const bearing = toDeg(bearingTo(x, z, target.dock.x, target.dock.z))
       const rel = wrap180(bearing - heading)
       const name = target.label.toUpperCase()
       let text: string

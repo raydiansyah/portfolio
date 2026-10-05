@@ -72,7 +72,8 @@ export function pursue(
   const target = carrot(ap, boat.x, boat.z, o.lookahead)
   const desired = Math.atan2(target.x - boat.x, target.z - boat.z)
   const err = wrapAngle(desired - boat.yaw)
-  const steer = Math.max(-1, Math.min(1, err * 1.8))
+  // err > 0 means the target lies toward +X (higher yaw), which is a port (negative) turn.
+  const steer = Math.max(-1, Math.min(1, -err * 1.8))
 
   // Ease off on sharp turns and when approaching the berth.
   const turnFactor = 1 - Math.min(0.75, Math.abs(err) / Math.PI)

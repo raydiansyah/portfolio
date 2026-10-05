@@ -40,14 +40,15 @@ describe('boat physics', () => {
     expect(s.speed).toBeGreaterThanOrEqual(-DEFAULT_BOAT.reverseSpeed)
   })
 
-  it('turns with inertia', () => {
+  it('turns starboard (screen right) with inertia', () => {
     const s = createBoatState()
     step(s, 1, 0, 3)
     step(s, 1, 1, 0.05)
     const early = s.yawRate
     step(s, 1, 1, 1.5)
-    expect(s.yawRate).toBeGreaterThan(early)
-    expect(s.yaw).toBeGreaterThan(0)
+    // Starboard lowers yaw (see stepBoat); the rate builds up gradually.
+    expect(s.yawRate).toBeLessThan(early)
+    expect(s.yaw).toBeLessThan(0)
   })
 
   it('cannot pass through an obstacle and loses speed on impact', () => {

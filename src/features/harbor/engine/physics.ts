@@ -52,7 +52,7 @@ export interface BoatState {
 export interface ControlInput {
   /** -1 (reverse/brake) .. 1 (full ahead). */
   throttle: number
-  /** -1 (left) .. 1 (right). */
+  /** -1 (port / screen left) .. 1 (starboard / screen right). */
   steer: number
 }
 
@@ -91,7 +91,9 @@ export function stepBoat(
   // Steering authority grows with speed (rudder needs flow) but never drops to zero.
   const authority = Math.max(0.2, Math.min(1, Math.abs(s.speed) / (p.maxSpeed * 0.5)))
   const dir = s.speed < -0.1 ? -1 : 1
-  const targetRate = steer * p.turnSpeed * authority * dir
+  // Positive steer = starboard (screen right). Yaw grows toward +X, which is
+  // screen-left for the follow camera looking along +Z, so starboard lowers yaw.
+  const targetRate = -steer * p.turnSpeed * authority * dir
   s.yawRate += (targetRate - s.yawRate) * Math.min(1, p.turnResponse * dt)
   s.yaw += s.yawRate * dt
 
