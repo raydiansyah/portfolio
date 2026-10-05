@@ -44,6 +44,17 @@ function setHash(panel: PanelId | null) {
 }
 
 /**
+ * Boat controls are live only when no overlay (panel, map, menu) covers the
+ * world. Derive it from state instead of toggling per action, so an overlay
+ * closed by another action (e.g. picking a waypoint closes the map) can never
+ * leave the boat locked.
+ */
+function syncInput() {
+  const s = harborStore.get()
+  engine?.setInputEnabled(!s.activePanel && !s.mapOpen && !s.menuOpen)
+}
+
+/**
  * User intents. Every path works without the engine (WebGL fallback / skip
  * exploration) by opening content panels directly.
  */
@@ -66,7 +77,6 @@ export const actions = {
 
   /** Open content directly (menu, deep link, fallback, buoy detail). */
   openPanel(panel: PanelId, projectIndex?: number) {
-    engine?.setInputEnabled(false)
     harborStore.set((s) => ({
       activePanel: panel,
       projectIndex: projectIndex ?? s.projectIndex,
@@ -74,6 +84,7 @@ export const actions = {
       menuOpen: false,
       mapOpen: false,
     }))
+    syncInput()
     setHash(panel)
   },
 
@@ -89,7 +100,7 @@ export const actions = {
       pushedHistory = false
       history.replaceState(null, '', location.pathname)
     }
-    engine?.setInputEnabled(true)
+    syncInput()
     if (!inProject) engine?.undock()
   },
 
@@ -104,6 +115,7 @@ export const actions = {
 
   navigateTo(id: DestinationId, auto: boolean) {
     harborStore.set({ waypoint: id, autopilot: auto, mapOpen: false, menuOpen: false })
+    syncInput()
     engine?.setWaypoint(id, auto)
   },
 
@@ -115,13 +127,13 @@ export const actions = {
   toggleMap(open?: boolean) {
     const next = open ?? !harborStore.get().mapOpen
     harborStore.set({ mapOpen: next, menuOpen: false })
-    engine?.setInputEnabled(!next && !harborStore.get().activePanel)
+    syncInput()
   },
 
   toggleMenu(open?: boolean) {
     const next = open ?? !harborStore.get().menuOpen
     harborStore.set({ menuOpen: next, mapOpen: false })
-    engine?.setInputEnabled(!next && !harborStore.get().activePanel)
+    syncInput()
   },
 
   interact() {
