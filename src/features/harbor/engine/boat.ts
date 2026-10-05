@@ -1,10 +1,11 @@
 import {
-  Box3, BoxGeometry, BufferGeometry, Float32BufferAttribute, type BufferAttribute, type InterleavedBufferAttribute, ConeGeometry, Group, Material, Mesh, MeshStandardMaterial, PointLight,
+  Box3, BoxGeometry, BufferGeometry, Float32BufferAttribute, type BufferAttribute, type InterleavedBufferAttribute, ConeGeometry, Group, Material, Mesh, MeshStandardMaterial,
   Vector3, type Object3D,
 } from 'three'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js'
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js'
+import { BoatLights } from './boatLights'
 import type { BoatState } from './physics'
 import { waveHeight, waveNormal } from './waves'
 
@@ -19,19 +20,18 @@ export class BoatVisual {
   /** Pitch/roll pivot inside root. */
   private hull = new Group()
   private proxy: Group
-  readonly lamp: PointLight
+  readonly lights: BoatLights
   private pitch = 0
   private roll = 0
   private lastSpeed = 0
 
-  constructor() {
+  constructor(reducedMotion: boolean) {
     this.proxy = this.buildProxy()
     this.hull.add(this.proxy)
     this.root.add(this.hull)
-    // Small warm lamp on deck; brightness follows the night/day blend.
-    this.lamp = new PointLight('#ffb766', 0, 16, 1.6)
-    this.lamp.position.set(0, 4.2, 2.6)
-    this.hull.add(this.lamp)
+    // Navigation lights + deck lamp ride on the pitch/roll pivot with the hull.
+    this.lights = new BoatLights(reducedMotion)
+    this.hull.add(this.lights.group)
   }
 
   private buildProxy() {
@@ -58,6 +58,7 @@ export class BoatVisual {
     })
     this.hull.remove(this.proxy)
     disposeTree(this.proxy)
+    this.lights.place(new Box3().setFromObject(model))
     this.hull.add(model)
   }
 
@@ -131,6 +132,7 @@ export class BoatVisual {
     this.root.position.set(state.x, y + (reduced ? 0 : Math.sin(t * 1.7) * 0.04), state.z)
     this.root.rotation.y = state.yaw
     this.hull.rotation.set(this.pitch, 0, this.roll)
+    this.lights.update()
   }
 
   /** World-space stern position for wake samples. */
@@ -139,6 +141,7 @@ export class BoatVisual {
   }
 
   dispose() {
+    this.lights.dispose()
     disposeTree(this.root)
   }
 }

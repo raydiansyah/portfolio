@@ -1,3 +1,4 @@
+import gsap from 'gsap'
 import {
   AdditiveBlending, BoxGeometry, BufferAttribute, BufferGeometry, Color, Float32BufferAttribute, Group, InstancedMesh,
   Matrix4, MeshBasicMaterial, Points, ShaderMaterial, Vector3,
@@ -18,8 +19,13 @@ export interface Lantern {
   highlight: number
   /** Multiplier for lanterns that can be hidden (project buoys). */
   visible: number
+  /** Switch state: 1 = lit for the night, DAY_POWER = resting ember. Tweened on theme change. */
+  power: number
   phase: number
 }
+
+/** Lanterns keep a faint ember in daylight so the harbors still read as places. */
+export const DAY_POWER = 0.12
 
 const glowVert = /* glsl */ `
 attribute float aIntensity;
@@ -60,7 +66,7 @@ export class Lanterns {
   }
 
   add(position: Vector3, base = 1, owner: string | null = null) {
-    const l: Lantern = { position, base, owner, highlight: 0, visible: 1, phase: this.list.length * 1.37 }
+    const l: Lantern = { position, base, owner, highlight: 0, visible: 1, power: 1, phase: this.list.length * 1.37 }
     this.list.push(l)
     return l
   }
@@ -113,12 +119,42 @@ export class Lanterns {
     pos.needsUpdate = true
   }
 
-  update(t: number, envLantern: number) {
+  /** Set every lantern instantly (initial theme, no animation). */
+  setAll(on: boolean) {
+    for (const l of this.list) {
+      gsap.killTweensOf(l)
+      l.power = on ? 1 : DAY_POWER
+    }
+  }
+
+  /**
+   * Night: lanterns light up in a wave travelling outward from `origin` (the
+   * boat), each with a brief ignition flicker. Day: they dim back to an ember.
+   */
+  ignite(on: boolean, origin: Vector3, startDelay = 0) {
+    for (const l of this.list) {
+      gsap.killTweensOf(l)
+      const delay = startDelay + Math.min(2.4, l.position.distanceTo(origin) / 70)
+      if (!on) {
+        gsap.to(l, { power: DAY_POWER, duration: this.flicker ? 0.9 : 0.2, delay: this.flicker ? delay * 0.4 : 0, ease: 'power2.in' })
+      } else if (!this.flicker) {
+        gsap.to(l, { power: 1, duration: 0.2 })
+      } else {
+        gsap
+          .timeline({ delay })
+          .to(l, { power: 0.75, duration: 0.05 })
+          .to(l, { power: 0.15, duration: 0.08 })
+          .to(l, { power: 1, duration: 0.4, ease: 'power2.out' })
+      }
+    }
+  }
+
+  update(t: number) {
     if (!this.lamps || !this.glow) return
     this.list.forEach((l, i) => {
       const flick = this.flicker ? 0.9 + 0.06 * Math.sin(t * 7.3 + l.phase) + 0.04 * Math.sin(t * 13.1 + l.phase * 2) : 1
-      // In daylight lanterns stay faintly lit; highlight still reads as feedback.
-      const v = (l.base * envLantern * flick + l.highlight * (0.35 + envLantern * 0.65)) * l.visible
+      // Highlight (active / nearby harbor) still reads as feedback in daylight.
+      const v = (l.base * l.power * flick + l.highlight * (0.35 + l.power * 0.65)) * l.visible
       this.intensity[i] = v
       this.color.copy(LANTERN_COLOR).multiplyScalar(0.2 + Math.min(v, 1.2) * 0.75)
       this.lamps!.setColorAt(i, this.color)

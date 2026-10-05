@@ -61,7 +61,7 @@ export class HarborEngine implements EngineHandle {
   private lanterns: Lanterns
   private rain: Rain
   private birds: Birds
-  private boat = new BoatVisual()
+  private boat: BoatVisual
   private navLine = new NavLine()
   private sun = new DirectionalLight('#ffffff', 1)
   private hemi = new HemisphereLight('#ffffff', '#000000', 1)
@@ -92,6 +92,7 @@ export class HarborEngine implements EngineHandle {
   private fx = new frameFx.WaterFx()
   private waterLanterns: number[] = []
   private tmp = new Vector3()
+  private resizeObserver = new ResizeObserver(() => this.onResize())
 
   constructor(opts: EngineOptions) {
     this.opts = opts
@@ -123,6 +124,9 @@ export class HarborEngine implements EngineHandle {
     this.docks = new Docks(this.layout, wood, this.lanterns)
     this.landmarks = new Landmarks(this.layout, wood, this.lanterns, s.shadows)
     this.lanterns.build()
+    this.lanterns.setAll(opts.isDark)
+    this.boat = new BoatVisual(reduced)
+    this.boat.lights.set(opts.isDark)
     const woodMesh = wood.build(this.wind.uTime, s.shadows)
     this.rain = new Rain(s.rain)
     this.birds = new Birds(s.birds, this.wind.uTime)
@@ -151,8 +155,6 @@ export class HarborEngine implements EngineHandle {
     document.addEventListener('visibilitychange', this.onVisibility)
     this.resizeObserver.observe(opts.container)
   }
-
-  private resizeObserver = new ResizeObserver(() => this.onResize())
 
   /** Fonts must be ready before signs are drawn, so construction goes through here. */
   static async create(opts: EngineOptions) {
@@ -200,9 +202,10 @@ export class HarborEngine implements EngineHandle {
   }
 
   setTheme(isDark: boolean) {
-    tweenTheme(this.mix, isDark, this.opts.reducedMotion, () => {
-      this.envDirty = true
-    })
+    tweenTheme(this.mix, isDark, this.opts.reducedMotion, () => (this.envDirty = true))
+    // Lights switch on as dusk falls: ship first, then lanterns rippling outward from it.
+    this.boat.lights.ignite(isDark, isDark ? 0.35 : 0)
+    this.lanterns.ignite(isDark, this.tmp.set(this.state.x, 0, this.state.z), isDark ? 0.6 : 0)
   }
 
   setJoystick = (x: number, y: number) => this.input.setJoystick(x, y)
@@ -324,7 +327,6 @@ export class HarborEngine implements EngineHandle {
     this.props.applyEnv(e)
     this.docks.applyEnv(e)
     this.landmarks.applyEnv(e)
-    this.boat.lamp.intensity = 3 * e.lantern
     this.envDirty = false
   }
 
@@ -400,7 +402,7 @@ export class HarborEngine implements EngineHandle {
     this.landmarks.update(t, this.lanterns, this.opts.reducedMotion)
     const active = this.docked ?? this.autoDest ?? this.waypoint
     this.docks.update(t, dt, this.tiers, active, this.lanterns, this.opts.reducedMotion)
-    this.lanterns.update(t, e.lantern)
+    this.lanterns.update(t)
 
     this.rain.update(t, this.tmp.set(this.state.x, 0, this.state.z), e.rain)
     this.birds.update(dt, cam, e.birds)
