@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>About Me - Admin</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <script>
+        tailwind.config = { darkMode: "class", theme: { extend: { colors: { "primary": "#1152d4", "background-dark": "#101622", "surface-dark": "#1e293b", "surface-darker": "#111318", "border-dark": "#334155" }, fontFamily: { "display": ["Inter", "sans-serif"] } } } }
+    </script>
+    <style>
+        ::-webkit-scrollbar {
+            width: 8px
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #101622
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400;
+            font-size: 20px
+        }
+
+        .icon-filled {
+            font-variation-settings: 'FILL' 1
+        }
+    </style>
+</head>
+
+<body class="bg-background-dark text-white font-display overflow-hidden">
+    <div class="flex h-screen w-full">
+        <!-- SIDEBAR -->
+        <aside class="hidden lg:flex w-72 flex-col border-r border-border-dark bg-surface-darker h-full shrink-0">
+            <div class="flex flex-col h-full p-4">
+                <div class="mb-8 px-2">
+                    <h1 class="text-white text-xl font-bold">Ray Diansyah</h1>
+                    <p class="text-slate-400 text-xs uppercase tracking-wider mt-1">Admin Console</p>
+                </div>
+                <nav class="flex-1 flex flex-col gap-1 overflow-y-auto">
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5"
+                        href="/dashboard"><span class="material-symbols-outlined">dashboard</span><span
+                            class="text-sm font-medium">Dashboard</span></a>
+                    <p class="mt-6 mb-2 px-3 text-xs font-semibold text-slate-500 uppercase">Content</p>
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5"
+                        href="/admin/projects"><span class="material-symbols-outlined">folder_open</span><span
+                            class="text-sm font-medium">Projects</span></a>
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/20 text-primary border border-primary/10"
+                        href="/admin/about"><span class="material-symbols-outlined icon-filled">person</span><span
+                            class="text-sm font-semibold">About Me</span></a>
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5"
+                        href="/admin/skills"><span class="material-symbols-outlined">bolt</span><span
+                            class="text-sm font-medium">Skills</span></a>
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5"
+                        href="/admin/experience"><span class="material-symbols-outlined">work</span><span
+                            class="text-sm font-medium">Work Experience</span></a>
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5"
+                        href="/admin/trainer"><span class="material-symbols-outlined">school</span><span
+                            class="text-sm font-medium">Trainer Experience</span></a>
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5"
+                        href="/admin/services"><span class="material-symbols-outlined">local_offer</span><span
+                            class="text-sm font-medium">Training Services</span></a>
+                </nav>
+                <div class="mt-auto pt-4 border-t border-white/10">
+                    <button onclick="toggleLang()"
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5 w-full"><span
+                            class="material-symbols-outlined">translate</span><span id="langBtn"
+                            class="text-sm font-medium">Language: EN</span></button>
+                    <button onclick="location.href='/login'"
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-red-400 hover:bg-red-500/10 w-full"><span
+                            class="material-symbols-outlined">logout</span><span
+                            class="text-sm font-medium">Logout</span></button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN -->
+        <main class="flex-1 flex flex-col h-full overflow-hidden">
+            <div class="flex-1 overflow-y-auto">
+                <div class="container mx-auto max-w-4xl p-6 lg:p-10 space-y-8">
+                    <div class="flex items-center gap-2 text-sm text-slate-400">
+                        <a href="/dashboard" class="hover:text-white">Home</a>
+                        <span class="material-symbols-outlined" style="font-size:16px">chevron_right</span>
+                        <span class="text-white font-medium">About Me</span>
+                    </div>
+                    <div>
+                        <h2 class="text-white text-3xl font-black">About Me / Tentang Saya</h2>
+                        <p class="text-slate-400 mt-2">Update your personal information displayed on the portfolio.</p>
+                    </div>
+
+                    <!-- Form -->
+                    <form id="aboutForm" class="space-y-6 bg-surface-darker border border-border-dark rounded-xl p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-300 mb-2">Name (English)</label>
+                                <input id="nameEN" type="text"
+                                    class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-white focus:border-primary">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-300 mb-2">Nama (Indonesia)</label>
+                                <input id="nameID" type="text"
+                                    class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-white focus:border-primary">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-300 mb-2">Title (English)</label>
+                                <input id="titleEN" type="text" placeholder="e.g. Full-Stack Developer"
+                                    class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-white focus:border-primary">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-300 mb-2">Jabatan (Indonesia)</label>
+                                <input id="titleID" type="text" placeholder="contoh: Pengembang Full-Stack"
+                                    class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-white focus:border-primary">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-2">Bio (English)</label>
+                            <textarea id="bioEN" rows="4"
+                                class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-white focus:border-primary"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-2">Bio (Indonesia)</label>
+                            <textarea id="bioID" rows="4"
+                                class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-white focus:border-primary"></textarea>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-300 mb-2">Location</label>
+                                <input id="location" type="text"
+                                    class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-white focus:border-primary">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-300 mb-2">Email</label>
+                                <input id="email" type="email"
+                                    class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-white focus:border-primary">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-300 mb-2">Phone</label>
+                                <input id="phone" type="tel"
+                                    class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-white focus:border-primary">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-2">Avatar URL</label>
+                            <input id="avatar" type="url"
+                                class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-white focus:border-primary">
+                        </div>
+                        <div class="flex justify-end pt-4 border-t border-border-dark">
+                            <button type="submit"
+                                class="px-6 py-2.5 rounded-lg bg-primary hover:bg-blue-600 text-white font-bold flex items-center gap-2">
+                                <span class="material-symbols-outlined">save</span>
+                                Save Changes / Simpan
+                            </button>
+                        </div>
+                    </form>
+                    <div id="message" class="hidden p-4 rounded-lg text-center"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const API = window.location.origin;
+        let lang = localStorage.getItem('lang') || 'EN';
+
+        function toggleLang() {
+            lang = lang === 'EN' ? 'ID' : 'EN';
+            localStorage.setItem('lang', lang);
+            document.getElementById('langBtn').textContent = `Language: ${lang}`;
+        }
+
+        async function loadAbout() {
+            try {
+                const res = await fetch(`${API}/api/about`);
+                const data = await res.json();
+                if (data) {
+                    document.getElementById('nameEN').value = data.nameEN || '';
+                    document.getElementById('nameID').value = data.nameID || '';
+                    document.getElementById('titleEN').value = data.titleEN || '';
+                    document.getElementById('titleID').value = data.titleID || '';
+                    document.getElementById('bioEN').value = data.bioEN || '';
+                    document.getElementById('bioID').value = data.bioID || '';
+                    document.getElementById('location').value = data.location || '';
+                    document.getElementById('email').value = data.email || '';
+                    document.getElementById('phone').value = data.phone || '';
+                    document.getElementById('avatar').value = data.avatar || '';
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        document.getElementById('aboutForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const msgEl = document.getElementById('message');
+            try {
+                const res = await fetch(`${API}/api/about`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        nameEN: document.getElementById('nameEN').value,
+                        nameID: document.getElementById('nameID').value,
+                        titleEN: document.getElementById('titleEN').value,
+                        titleID: document.getElementById('titleID').value,
+                        bioEN: document.getElementById('bioEN').value,
+                        bioID: document.getElementById('bioID').value,
+                        location: document.getElementById('location').value,
+                        email: document.getElementById('email').value,
+                        phone: document.getElementById('phone').value,
+                        avatar: document.getElementById('avatar').value
+                    })
+                });
+                if (res.ok) {
+                    msgEl.className = 'p-4 rounded-lg text-center bg-emerald-500/10 text-emerald-400';
+                    msgEl.textContent = 'Saved successfully! / Berhasil disimpan!';
+                } else {
+                    throw new Error();
+                }
+            } catch {
+                msgEl.className = 'p-4 rounded-lg text-center bg-red-500/10 text-red-400';
+                msgEl.textContent = 'Error saving / Gagal menyimpan';
+            }
+            msgEl.classList.remove('hidden');
+            setTimeout(() => msgEl.classList.add('hidden'), 3000);
+        });
+
+        document.getElementById('langBtn').textContent = `Language: ${lang}`;
+        loadAbout();
+    </script>
+</body>
+
+</html>

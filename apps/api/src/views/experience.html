@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Work Experience - Admin</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <script>tailwind.config = { darkMode: "class", theme: { extend: { colors: { "primary": "#1152d4", "background-dark": "#101622", "surface-darker": "#111318", "border-dark": "#334155" }, fontFamily: { "display": ["Inter", "sans-serif"] } } } }</script>
+    <style>
+        ::-webkit-scrollbar {
+            width: 8px
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #101622
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400;
+            font-size: 20px
+        }
+
+        .icon-filled {
+            font-variation-settings: 'FILL' 1
+        }
+    </style>
+</head>
+
+<body class="bg-background-dark text-white font-display overflow-hidden">
+    <div class="flex h-screen w-full">
+        <aside class="hidden lg:flex w-72 flex-col border-r border-border-dark bg-surface-darker h-full shrink-0">
+            <div class="flex flex-col h-full p-4">
+                <div class="mb-8 px-2">
+                    <h1 class="text-white text-xl font-bold">Ray Diansyah</h1>
+                    <p class="text-slate-400 text-xs uppercase mt-1">Admin Console</p>
+                </div>
+                <nav class="flex-1 flex flex-col gap-1 overflow-y-auto">
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5"
+                        href="/dashboard"><span class="material-symbols-outlined">dashboard</span><span
+                            class="text-sm">Dashboard</span></a>
+                    <p class="mt-6 mb-2 px-3 text-xs font-semibold text-slate-500 uppercase">Content</p>
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5"
+                        href="/admin/projects"><span class="material-symbols-outlined">folder_open</span><span
+                            class="text-sm">Projects</span></a>
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5"
+                        href="/admin/about"><span class="material-symbols-outlined">person</span><span
+                            class="text-sm">About Me</span></a>
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5"
+                        href="/admin/skills"><span class="material-symbols-outlined">bolt</span><span
+                            class="text-sm">Skills</span></a>
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/20 text-primary border border-primary/10"
+                        href="/admin/experience"><span class="material-symbols-outlined icon-filled">work</span><span
+                            class="text-sm font-semibold">Work Experience</span></a>
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5"
+                        href="/admin/trainer"><span class="material-symbols-outlined">school</span><span
+                            class="text-sm">Trainer Experience</span></a>
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5"
+                        href="/admin/services"><span class="material-symbols-outlined">local_offer</span><span
+                            class="text-sm">Training Services</span></a>
+                </nav>
+                <div class="mt-auto pt-4 border-t border-white/10">
+                    <button onclick="toggleLang()"
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5 w-full"><span
+                            class="material-symbols-outlined">translate</span><span id="langBtn"
+                            class="text-sm">Language: EN</span></button>
+                    <button onclick="location.href='/login'"
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-red-400 hover:bg-red-500/10 w-full"><span
+                            class="material-symbols-outlined">logout</span><span class="text-sm">Logout</span></button>
+                </div>
+            </div>
+        </aside>
+        <main class="flex-1 flex flex-col h-full overflow-hidden">
+            <div class="flex-1 overflow-y-auto">
+                <div class="container mx-auto max-w-6xl p-6 lg:p-10 space-y-8">
+                    <div class="flex items-center gap-2 text-sm text-slate-400"><a href="/dashboard"
+                            class="hover:text-white">Home</a><span class="material-symbols-outlined"
+                            style="font-size:16px">chevron_right</span><span class="text-white font-medium">Work
+                            Experience / Pengalaman Kerja</span></div>
+                    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                        <div>
+                            <h2 class="text-white text-3xl font-black">Work Experience / Pengalaman Kerja</h2>
+                            <p class="text-slate-400 mt-2">Manage your professional work history.</p>
+                        </div>
+                        <button onclick="openModal()"
+                            class="flex items-center gap-2 bg-primary hover:bg-blue-600 text-white px-5 py-2.5 rounded-lg font-bold text-sm"><span
+                                class="material-symbols-outlined">add</span>Add Experience</button>
+                    </div>
+                    <div class="space-y-4" id="expList"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <div id="modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+        <div
+            class="bg-surface-darker border border-border-dark rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between p-6 border-b border-border-dark">
+                <h3 id="modalTitle" class="text-xl font-bold text-white">Add Experience</h3><button
+                    onclick="closeModal()" class="text-slate-400 hover:text-white"><span
+                        class="material-symbols-outlined">close</span></button>
+            </div>
+            <form id="itemForm" class="p-6 space-y-4">
+                <input type="hidden" id="itemId">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div><label class="block text-sm font-medium text-slate-300 mb-2">Job Title</label><input id="title"
+                            type="text" required
+                            class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-white focus:border-primary">
+                    </div>
+                    <div><label class="block text-sm font-medium text-slate-300 mb-2">Company</label><input id="company"
+                            type="text" required
+                            class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-white focus:border-primary">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div><label class="block text-sm font-medium text-slate-300 mb-2">Location</label><input
+                            id="location" type="text"
+                            class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-white focus:border-primary">
+                    </div>
+                    <div><label class="block text-sm font-medium text-slate-300 mb-2">Period</label><input id="period"
+                            type="text" placeholder="e.g. Jan 2020 - Present"
+                            class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-white focus:border-primary">
+                    </div>
+                </div>
+                <div><label class="block text-sm font-medium text-slate-300 mb-2">Description (English)</label><textarea
+                        id="descriptionEN" rows="3"
+                        class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-white focus:border-primary"></textarea>
+                </div>
+                <div><label class="block text-sm font-medium text-slate-300 mb-2">Deskripsi (Indonesia)</label><textarea
+                        id="descriptionID" rows="3"
+                        class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-white focus:border-primary"></textarea>
+                </div>
+                <div><label class="block text-sm font-medium text-slate-300 mb-2">Skills (comma separated)</label><input
+                        id="skills" type="text" placeholder="React, Node.js, MySQL"
+                        class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-white focus:border-primary">
+                </div>
+                <div class="flex items-center gap-2"><input type="checkbox" id="isCurrent"
+                        class="rounded bg-background-dark border-border-dark text-primary"><label for="isCurrent"
+                        class="text-sm text-slate-300">Current Position / Posisi Saat Ini</label></div>
+                <div class="flex justify-end gap-3 pt-4 border-t border-border-dark"><button type="button"
+                        onclick="closeModal()"
+                        class="px-4 py-2 rounded-lg border border-border-dark text-slate-300">Cancel</button><button
+                        type="submit" class="px-6 py-2 rounded-lg bg-primary text-white font-bold">Save</button></div>
+            </form>
+        </div>
+    </div>
+    <script>
+        const API = window.location.origin; let items = []; let lang = localStorage.getItem('lang') || 'EN';
+        async function loadItems() { try { const res = await fetch(`${API}/api/experiences`); items = await res.json(); renderList(); } catch (e) { console.error(e); } }
+        function renderList() {
+            const list = document.getElementById('expList');
+            if (!items.length) { list.innerHTML = '<p class="text-slate-500 text-center py-8">No experience found</p>'; return; }
+            list.innerHTML = items.map(e => `
+                <div class="bg-surface-darker border border-border-dark rounded-xl p-6 hover:border-primary/50 transition-colors">
+                    <div class="flex justify-between items-start">
+                        <div class="flex gap-4">
+                            <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-primary">work</span></div>
+                            <div>
+                                <h3 class="text-white font-bold text-lg">${e.title}</h3>
+                                <p class="text-slate-400">${e.company}${e.location ? ' • ' + e.location : ''}</p>
+                                <p class="text-primary text-sm mt-1">${e.period || ''} ${e.isCurrent ? '<span class="bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded text-xs ml-2">Current</span>' : ''}</p>
+                                <p class="text-slate-300 text-sm mt-3">${lang === 'EN' ? (e.descriptionEN || e.descriptionID || '') : (e.descriptionID || e.descriptionEN || '')}</p>
+                                ${e.skills ? `<div class="flex flex-wrap gap-2 mt-3">${e.skills.split(',').map(s => `<span class="px-2 py-1 bg-slate-700 text-slate-300 rounded text-xs">${s.trim()}</span>`).join('')}</div>` : ''}
+                            </div>
+                        </div>
+                        <div class="flex gap-1 shrink-0"><button onclick="editItem('${e.id}')" class="p-1.5 text-slate-400 hover:text-white hover:bg-white/10 rounded"><span class="material-symbols-outlined" style="font-size:18px">edit</span></button><button onclick="deleteItem('${e.id}')" class="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded"><span class="material-symbols-outlined" style="font-size:18px">delete</span></button></div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        function openModal(item = null) { document.getElementById('modal').classList.remove('hidden'); document.getElementById('modalTitle').textContent = item ? 'Edit Experience' : 'Add Experience'; document.getElementById('itemId').value = item?.id || ''; document.getElementById('title').value = item?.title || ''; document.getElementById('company').value = item?.company || ''; document.getElementById('location').value = item?.location || ''; document.getElementById('period').value = item?.period || ''; document.getElementById('descriptionEN').value = item?.descriptionEN || ''; document.getElementById('descriptionID').value = item?.descriptionID || ''; document.getElementById('skills').value = item?.skills || ''; document.getElementById('isCurrent').checked = item?.isCurrent || false; }
+        function closeModal() { document.getElementById('modal').classList.add('hidden'); }
+        function editItem(id) { const item = items.find(i => i.id === id); if (item) openModal(item); }
+        async function deleteItem(id) { if (!confirm('Delete?')) return; await fetch(`${API}/api/experiences/${id}`, { method: 'DELETE', credentials: 'include' }); loadItems(); }
+        document.getElementById('itemForm').addEventListener('submit', async (e) => { e.preventDefault(); const id = document.getElementById('itemId').value; const data = { title: document.getElementById('title').value, company: document.getElementById('company').value, location: document.getElementById('location').value, period: document.getElementById('period').value, descriptionEN: document.getElementById('descriptionEN').value, descriptionID: document.getElementById('descriptionID').value, skills: document.getElementById('skills').value, isCurrent: document.getElementById('isCurrent').checked }; await fetch(`${API}/api/experiences${id ? '/' + id : ''}`, { method: id ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(data) }); closeModal(); loadItems(); });
+        function toggleLang() { lang = lang === 'EN' ? 'ID' : 'EN'; localStorage.setItem('lang', lang); document.getElementById('langBtn').textContent = `Language: ${lang}`; renderList(); }
+        document.getElementById('langBtn').textContent = `Language: ${lang}`;
+        loadItems();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Projects - Admin</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: { extend: { colors: { "primary": "#1152d4", "background-dark": "#101622", "surface-dark": "#1e293b", "surface-darker": "#111318", "border-dark": "#334155" }, fontFamily: { "display": ["Inter", "sans-serif"] } } }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #101622;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400;
+            font-size: 20px;
+        }
+
+        .icon-filled {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+</head>
+
+<body class="bg-background-dark text-white font-display overflow-hidden">
+    <div class="flex h-screen w-full">
+        <!-- SIDEBAR -->
+        <aside class="hidden lg:flex w-72 flex-col border-r border-border-dark bg-surface-darker h-full shrink-0">
+            <div class="flex flex-col h-full p-4">
+                <div class="mb-8 px-2">
+                    <h1 class="text-white text-xl font-bold">Ray Diansyah</h1>
+                    <p class="text-slate-400 text-xs uppercase tracking-wider mt-1">Admin Console</p>
+                </div>
+                <nav class="flex-1 flex flex-col gap-1 overflow-y-auto">
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5"
+                        href="/dashboard"><span class="material-symbols-outlined">dashboard</span><span
+                            class="text-sm font-medium">Dashboard</span></a>
+                    <p class="mt-6 mb-2 px-3 text-xs font-semibold text-slate-500 uppercase">Content</p>
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/20 text-primary border border-primary/10"
+                        href="/admin/projects"><span
+                            class="material-symbols-outlined icon-filled">folder_open</span><span
+                            class="text-sm font-semibold">Projects</span></a>
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5"
+                        href="/admin/about"><span class="material-symbols-outlined">person</span><span
+                            class="text-sm font-medium">About Me</span></a>
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5"
+                        href="/admin/skills"><span class="material-symbols-outlined">bolt</span><span
+                            class="text-sm font-medium">Skills</span></a>
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5"
+                        href="/admin/experience"><span class="material-symbols-outlined">work</span><span
+                            class="text-sm font-medium">Work Experience</span></a>
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5"
+                        href="/admin/trainer"><span class="material-symbols-outlined">school</span><span
+                            class="text-sm font-medium">Trainer Experience</span></a>
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5"
+                        href="/admin/services"><span class="material-symbols-outlined">local_offer</span><span
+                            class="text-sm font-medium">Training Services</span></a>
+                    <p class="mt-6 mb-2 px-3 text-xs font-semibold text-slate-500 uppercase">System</p>
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5"
+                        href="/admin/settings"><span class="material-symbols-outlined">settings</span><span
+                            class="text-sm font-medium">Settings</span></a>
+                </nav>
+                <div class="mt-auto pt-4 border-t border-white/10">
+                    <button onclick="toggleLang()"
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5 w-full"><span
+                            class="material-symbols-outlined">translate</span><span id="langBtn"
+                            class="text-sm font-medium">Language: EN</span></button>
+                    <button onclick="logout()"
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-red-400 hover:bg-red-500/10 w-full"><span
+                            class="material-symbols-outlined">logout</span><span
+                            class="text-sm font-medium">Logout</span></button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN -->
+        <main class="flex-1 flex flex-col h-full overflow-hidden">
+            <div class="lg:hidden flex items-center justify-between p-4 bg-surface-darker border-b border-border-dark">
+                <h1 class="text-white text-lg font-bold">Projects</h1>
+                <button onclick="toggleMobile()" class="text-white"><span
+                        class="material-symbols-outlined">menu</span></button>
+            </div>
+            <div class="flex-1 overflow-y-auto">
+                <div class="container mx-auto max-w-6xl p-6 lg:p-10 space-y-8">
+                    <div class="flex items-center gap-2 text-sm text-slate-400">
+                        <a href="/dashboard" class="hover:text-white">Home</a>
+                        <span class="material-symbols-outlined" style="font-size:16px">chevron_right</span>
+                        <span class="text-white font-medium" id="titleEN">Projects</span>
+                        <span class="text-white font-medium hidden" id="titleID">Proyek</span>
+                    </div>
+                    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                        <div>
+                            <h2 class="text-white text-3xl font-black" id="headingEN">Manage Projects</h2>
+                            <h2 class="text-white text-3xl font-black hidden" id="headingID">Kelola Proyek</h2>
+                            <p class="text-slate-400 mt-2" id="descEN">Create, edit, and manage your portfolio projects.
+                            </p>
+                            <p class="text-slate-400 mt-2 hidden" id="descID">Buat, edit, dan kelola proyek portfolio
+                                Anda.</p>
+                        </div>
+                        <button onclick="openModal()"
+                            class="flex items-center gap-2 bg-primary hover:bg-blue-600 text-white px-5 py-2.5 rounded-lg font-bold text-sm">
+                            <span class="material-symbols-outlined">add</span>
+                            <span id="addBtnEN">Add Project</span>
+                            <span id="addBtnID" class="hidden">Tambah Proyek</span>
+                        </button>
+                    </div>
+
+                    <!-- Table -->
+                    <div class="bg-surface-darker border border-border-dark rounded-xl overflow-hidden">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="border-b border-border-dark text-xs uppercase text-slate-400">
+                                    <th class="p-4">Title</th>
+                                    <th class="p-4">Category</th>
+                                    <th class="p-4">Status</th>
+                                    <th class="p-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody" class="divide-y divide-border-dark/30"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+        <div
+            class="bg-surface-darker border border-border-dark rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between p-6 border-b border-border-dark">
+                <h3 id="modalTitle" class="text-xl font-bold text-white">Add Project</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white"><span
+                        class="material-symbols-outlined">close</span></button>
+            </div>
+            <form id="itemForm" class="p-6 space-y-4">
+                <input type="hidden" id="itemId">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Title</label>
+                        <input id="title" type="text" required
+                            class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-white focus:border-primary focus:ring-1 focus:ring-primary">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Category</label>
+                        <input id="category" type="text"
+                            class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-white focus:border-primary">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Description (English)</label>
+                    <textarea id="descriptionEN" rows="3"
+                        class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-white focus:border-primary"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Description (Indonesia)</label>
+                    <textarea id="descriptionID" rows="3"
+                        class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-white focus:border-primary"></textarea>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Live URL</label>
+                        <input id="liveUrl" type="url"
+                            class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-white focus:border-primary">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Repository URL</label>
+                        <input id="repoUrl" type="url"
+                            class="w-full bg-background-dark border border-border-dark rounded-lg px-4 py-3 text-white focus:border-primary">
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" id="isPublic" checked
+                        class="rounded bg-background-dark border-border-dark text-primary focus:ring-primary">
+                    <label for="isPublic" class="text-sm text-slate-300">Published / Dipublikasikan</label>
+                </div>
+                <div class="flex justify-end gap-3 pt-4 border-t border-border-dark">
+                    <button type="button" onclick="closeModal()"
+                        class="px-4 py-2 rounded-lg border border-border-dark text-slate-300 hover:bg-white/5">Cancel</button>
+                    <button type="submit"
+                        class="px-6 py-2 rounded-lg bg-primary hover:bg-blue-600 text-white font-bold">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API = window.location.origin;
+        let lang = localStorage.getItem('lang') || 'EN';
+        let items = [];
+
+        function toggleLang() {
+            lang = lang === 'EN' ? 'ID' : 'EN';
+            localStorage.setItem('lang', lang);
+            updateLangUI();
+        }
+
+        function updateLangUI() {
+            document.getElementById('langBtn').textContent = `Language: ${lang}`;
+            document.querySelectorAll('[id$="EN"]').forEach(el => el.classList.toggle('hidden', lang !== 'EN'));
+            document.querySelectorAll('[id$="ID"]').forEach(el => el.classList.toggle('hidden', lang !== 'ID'));
+        }
+
+        async function loadItems() {
+            try {
+                const res = await fetch(`${API}/api/projects`);
+                items = await res.json();
+                renderTable();
+            } catch (e) { console.error(e); }
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            if (!items.length) {
+                tbody.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-slate-500">No projects found</td></tr>';
+                return;
+            }
+            tbody.innerHTML = items.map(item => `
+                <tr class="group hover:bg-white/[0.02]">
+                    <td class="p-4"><span class="text-white font-medium">${item.title}</span></td>
+                    <td class="p-4"><span class="px-2 py-1 rounded bg-blue-500/10 text-blue-400 text-xs">${item.category || '-'}</span></td>
+                    <td class="p-4"><span class="flex items-center gap-1 text-xs ${item.isPublic ? 'text-emerald-400' : 'text-slate-400'}"><span class="w-1.5 h-1.5 rounded-full ${item.isPublic ? 'bg-emerald-400' : 'bg-slate-400'}"></span>${item.isPublic ? 'Published' : 'Draft'}</span></td>
+                    <td class="p-4 text-right">
+                        <button onclick="editItem('${item.id}')" class="p-1.5 text-slate-400 hover:text-white hover:bg-white/10 rounded"><span class="material-symbols-outlined" style="font-size:18px">edit</span></button>
+                        <button onclick="deleteItem('${item.id}')" class="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded"><span class="material-symbols-outlined" style="font-size:18px">delete</span></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openModal(item = null) {
+            document.getElementById('modal').classList.remove('hidden');
+            document.getElementById('modalTitle').textContent = item ? 'Edit Project' : 'Add Project';
+            document.getElementById('itemId').value = item?.id || '';
+            document.getElementById('title').value = item?.title || '';
+            document.getElementById('category').value = item?.category || '';
+            document.getElementById('descriptionEN').value = item?.descriptionEN || '';
+            document.getElementById('descriptionID').value = item?.descriptionID || '';
+            document.getElementById('liveUrl').value = item?.liveUrl || '';
+            document.getElementById('repoUrl').value = item?.repoUrl || '';
+            document.getElementById('isPublic').checked = item?.isPublic !== false;
+        }
+
+        function closeModal() { document.getElementById('modal').classList.add('hidden'); }
+
+        function editItem(id) {
+            const item = items.find(i => i.id === id);
+            if (item) openModal(item);
+        }
+
+        async function deleteItem(id) {
+            if (!confirm('Delete this item?')) return;
+            try {
+                await fetch(`${API}/api/projects/${id}`, { method: 'DELETE', credentials: 'include' });
+                loadItems();
+            } catch (e) { alert('Error deleting'); }
+        }
+
+        document.getElementById('itemForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('itemId').value;
+            const data = {
+                title: document.getElementById('title').value,
+                category: document.getElementById('category').value,
+                descriptionEN: document.getElementById('descriptionEN').value,
+                descriptionID: document.getElementById('descriptionID').value,
+                liveUrl: document.getElementById('liveUrl').value,
+                repoUrl: document.getElementById('repoUrl').value,
+                isPublic: document.getElementById('isPublic').checked
+            };
+            try {
+                await fetch(`${API}/api/projects${id ? '/' + id : ''}`, {
+                    method: id ? 'PUT' : 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(data)
+                });
+                closeModal();
+                loadItems();
+            } catch (e) { alert('Error saving'); }
+        });
+
+        function logout() { window.location.href = '/login'; }
+        function toggleMobile() { /* mobile menu */ }
+
+        updateLangUI();
+        loadItems();
+    </script>
+</body>
+
+</html>

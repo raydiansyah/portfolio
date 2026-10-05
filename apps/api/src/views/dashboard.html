@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Portfolio Ray Diansyah - Dashboard</title>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap"
+        rel="stylesheet" />
+    <!-- Material Symbols -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1152d4",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                        "surface-dark": "#1e293b",
+                        "surface-darker": "#111318",
+                        "border-dark": "#334155",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "sans": ["Inter", "sans-serif"],
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #101622;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            font-size: 20px;
+        }
+
+        .icon-filled {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display overflow-hidden">
+    <div class="flex h-screen w-full">
+        <!-- SIDEBAR -->
+        <aside id="sidebar"
+            class="hidden lg:flex w-72 flex-col border-r border-border-dark bg-surface-darker h-full shrink-0">
+            <div class="flex flex-col h-full p-4">
+                <!-- Branding -->
+                <div class="mb-8 px-2">
+                    <h1 class="text-white text-xl font-bold tracking-tight">Ray Diansyah</h1>
+                    <p class="text-slate-400 text-xs font-medium uppercase tracking-wider mt-1">Admin Console</p>
+                </div>
+
+                <!-- Navigation -->
+                <nav class="flex-1 flex flex-col gap-1 overflow-y-auto pr-1">
+                    <a id="nav-dashboard"
+                        class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/20 text-primary border border-primary/10"
+                        href="/dashboard">
+                        <span class="material-symbols-outlined icon-filled text-primary">dashboard</span>
+                        <span class="text-sm font-semibold">Dashboard</span>
+                    </a>
+
+                    <p class="mt-6 mb-2 px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Content</p>
+
+                    <a id="nav-projects"
+                        class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5 hover:text-white transition-colors"
+                        href="/admin/projects">
+                        <span class="material-symbols-outlined">folder_open</span>
+                        <span class="text-sm font-medium">Projects</span>
+                    </a>
+                    <a id="nav-about"
+                        class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5 hover:text-white transition-colors"
+                        href="/admin/about">
+                        <span class="material-symbols-outlined">person</span>
+                        <span class="text-sm font-medium">About Me</span>
+                    </a>
+                    <a id="nav-skills"
+                        class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5 hover:text-white transition-colors"
+                        href="/admin/skills">
+                        <span class="material-symbols-outlined">bolt</span>
+                        <span class="text-sm font-medium">Skills</span>
+                    </a>
+                    <a id="nav-experience"
+                        class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5 hover:text-white transition-colors"
+                        href="/admin/experience">
+                        <span class="material-symbols-outlined">work</span>
+                        <span class="text-sm font-medium">Work Experience</span>
+                    </a>
+                    <a id="nav-trainer"
+                        class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5 hover:text-white transition-colors"
+                        href="/admin/trainer">
+                        <span class="material-symbols-outlined">school</span>
+                        <span class="text-sm font-medium">Trainer Experience</span>
+                    </a>
+                    <a id="nav-services"
+                        class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5 hover:text-white transition-colors"
+                        href="/admin/services">
+                        <span class="material-symbols-outlined">local_offer</span>
+                        <span class="text-sm font-medium">Training Services</span>
+                    </a>
+
+                    <p class="mt-6 mb-2 px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">System</p>
+
+                    <a id="nav-settings"
+                        class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5 hover:text-white transition-colors"
+                        href="/admin/settings">
+                        <span class="material-symbols-outlined">settings</span>
+                        <span class="text-sm font-medium">Settings</span>
+                    </a>
+                </nav>
+
+                <!-- Footer Actions -->
+                <div class="mt-auto pt-4 border-t border-white/10 flex flex-col gap-1">
+                    <button
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5 hover:text-white w-full text-left transition-colors">
+                        <span class="material-symbols-outlined">translate</span>
+                        <span class="text-sm font-medium">Language: EN</span>
+                    </button>
+                    <button onclick="logout()"
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-red-400 hover:bg-red-500/10 hover:text-red-300 w-full text-left transition-colors">
+                        <span class="material-symbols-outlined">logout</span>
+                        <span class="text-sm font-medium">Logout</span>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="flex-1 flex flex-col h-full overflow-hidden bg-background-light dark:bg-background-dark relative">
+            <!-- Mobile Header -->
+            <div class="lg:hidden flex items-center justify-between p-4 bg-surface-darker border-b border-border-dark">
+                <h1 class="text-white text-lg font-bold">Ray Diansyah</h1>
+                <button onclick="toggleMobileMenu()" class="text-white"><span
+                        class="material-symbols-outlined">menu</span></button>
+            </div>
+
+            <!-- Mobile Menu Overlay -->
+            <div id="mobileMenu" class="hidden fixed inset-0 z-50 lg:hidden">
+                <div class="absolute inset-0 bg-black/60" onclick="toggleMobileMenu()"></div>
+                <aside
+                    class="absolute left-0 top-0 h-full w-72 bg-surface-darker border-r border-border-dark p-4 overflow-y-auto">
+                    <div class="flex items-center justify-between mb-6">
+                        <h1 class="text-white text-xl font-bold">Ray Diansyah</h1>
+                        <button onclick="toggleMobileMenu()" class="text-white"><span
+                                class="material-symbols-outlined">close</span></button>
+                    </div>
+                    <nav class="flex flex-col gap-2">
+                        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/20 text-primary"
+                            href="#dashboard">
+                            <span class="material-symbols-outlined icon-filled">dashboard</span>
+                            <span class="text-sm font-semibold">Dashboard</span>
+                        </a>
+                        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5"
+                            href="#projects">
+                            <span class="material-symbols-outlined">folder_open</span>
+                            <span class="text-sm font-medium">Projects</span>
+                        </a>
+                        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5"
+                            href="#about">
+                            <span class="material-symbols-outlined">person</span>
+                            <span class="text-sm font-medium">About Me</span>
+                        </a>
+                        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5"
+                            href="#skills">
+                            <span class="material-symbols-outlined">bolt</span>
+                            <span class="text-sm font-medium">Skills</span>
+                        </a>
+                        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5"
+                            href="#experience">
+                            <span class="material-symbols-outlined">work</span>
+                            <span class="text-sm font-medium">Work Experience</span>
+                        </a>
+                    </nav>
+                    <button onclick="logout()"
+                        class="mt-6 flex items-center gap-3 px-3 py-2.5 rounded-lg text-red-400 hover:bg-red-500/10 w-full">
+                        <span class="material-symbols-outlined">logout</span>
+                        <span class="text-sm font-medium">Logout</span>
+                    </button>
+                </aside>
+            </div>
+
+            <!-- Scrollable Content Area -->
+            <div class="flex-1 overflow-y-auto">
+                <div class="container mx-auto max-w-7xl p-6 lg:p-10 space-y-8">
+                    <!-- Breadcrumbs -->
+                    <div class="flex items-center gap-2 text-sm text-slate-400">
+                        <span class="hover:text-white cursor-pointer transition-colors">Home</span>
+                        <span class="material-symbols-outlined" style="font-size: 16px;">chevron_right</span>
+                        <span id="breadcrumb-current" class="text-white font-medium">Dashboard</span>
+                    </div>
+
+                    <!-- Page Heading & Main Action -->
+                    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                        <div class="flex flex-col gap-2">
+                            <h2 id="page-title" class="text-white text-3xl lg:text-4xl font-black tracking-tight">
+                                Dashboard Overview</h2>
+                            <p id="page-subtitle" class="text-slate-400 text-base">Welcome back, Admin. Manage your
+                                portfolio content and track performance.</p>
+                        </div>
+                        <button
+                            class="flex items-center justify-center gap-2 bg-primary hover:bg-blue-600 text-white px-5 py-2.5 rounded-lg font-bold text-sm transition-all shadow-lg shadow-blue-900/20 active:scale-95">
+                            <span class="material-symbols-outlined" style="font-size: 20px;">add</span>
+                            <span>Add New Item</span>
+                        </button>
+                    </div>
+
+                    <!-- Stats Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                        <div
+                            class="bg-surface-darker border border-border-dark p-6 rounded-xl flex flex-col gap-4 hover:border-primary/50 transition-colors">
+                            <div class="flex items-center justify-between">
+                                <p class="text-slate-400 text-sm font-medium">Total Projects</p>
+                                <span
+                                    class="material-symbols-outlined text-primary bg-primary/10 p-2 rounded-lg">folder_open</span>
+                            </div>
+                            <div>
+                                <p id="stat-projects" class="text-white text-3xl font-bold">0</p>
+                                <p class="text-green-400 text-xs mt-1 flex items-center gap-1">
+                                    <span class="material-symbols-outlined" style="font-size: 14px;">trending_up</span>
+                                    Loading...
+                                </p>
+                            </div>
+                        </div>
+                        <div
+                            class="bg-surface-darker border border-border-dark p-6 rounded-xl flex flex-col gap-4 hover:border-primary/50 transition-colors">
+                            <div class="flex items-center justify-between">
+                                <p class="text-slate-400 text-sm font-medium">Work Experience</p>
+                                <span
+                                    class="material-symbols-outlined text-orange-400 bg-orange-400/10 p-2 rounded-lg">work</span>
+                            </div>
+                            <div>
+                                <p id="stat-experience" class="text-white text-3xl font-bold">0</p>
+                                <p class="text-slate-500 text-xs mt-1">Total entries</p>
+                            </div>
+                        </div>
+                        <div
+                            class="bg-surface-darker border border-border-dark p-6 rounded-xl flex flex-col gap-4 hover:border-primary/50 transition-colors">
+                            <div class="flex items-center justify-between">
+                                <p class="text-slate-400 text-sm font-medium">Training Modules</p>
+                                <span
+                                    class="material-symbols-outlined text-emerald-400 bg-emerald-400/10 p-2 rounded-lg">school</span>
+                            </div>
+                            <div>
+                                <p id="stat-training" class="text-white text-3xl font-bold">8</p>
+                                <p class="text-green-400 text-xs mt-1 flex items-center gap-1">
+                                    <span class="material-symbols-outlined" style="font-size: 14px;">check_circle</span>
+                                    All updated
+                                </p>
+                            </div>
+                        </div>
+                        <div
+                            class="bg-surface-darker border border-border-dark p-6 rounded-xl flex flex-col gap-4 hover:border-primary/50 transition-colors">
+                            <div class="flex items-center justify-between">
+                                <p class="text-slate-400 text-sm font-medium">Years Experience</p>
+                                <span
+                                    class="material-symbols-outlined text-purple-400 bg-purple-400/10 p-2 rounded-lg">history_edu</span>
+                            </div>
+                            <div>
+                                <p id="stat-years" class="text-white text-3xl font-bold">11+</p>
+                                <p class="text-slate-500 text-xs mt-1">Since 2014</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity / Content Table -->
+                    <div class="flex flex-col gap-4">
+                        <div class="flex items-center justify-between px-1">
+                            <h2 class="text-white text-xl font-bold">Recent Content Activity</h2>
+                            <div class="flex gap-2">
+                                <div class="relative">
+                                    <span
+                                        class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
+                                        style="font-size: 18px;">search</span>
+                                    <input id="searchInput"
+                                        class="bg-surface-darker border border-border-dark text-white text-sm rounded-lg pl-9 pr-4 py-2 focus:ring-1 focus:ring-primary focus:border-primary placeholder-slate-600 w-48 lg:w-64"
+                                        placeholder="Search..." type="text" />
+                                </div>
+                                <button
+                                    class="flex items-center justify-center w-9 h-9 rounded-lg border border-border-dark text-slate-400 hover:text-white hover:bg-white/5 transition-colors">
+                                    <span class="material-symbols-outlined" style="font-size: 20px;">filter_list</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="bg-surface-darker border border-border-dark rounded-xl overflow-hidden shadow-sm">
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr
+                                            class="border-b border-border-dark/50 text-xs uppercase tracking-wider text-slate-400">
+                                            <th class="p-4 font-semibold">Title</th>
+                                            <th class="p-4 font-semibold">Category</th>
+                                            <th class="p-4 font-semibold">Last Modified</th>
+                                            <th class="p-4 font-semibold">Status</th>
+                                            <th class="p-4 font-semibold text-right">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="contentTable" class="divide-y divide-border-dark/30 text-sm">
+                                        <tr>
+                                            <td colspan="5" class="p-8 text-center text-slate-500">Loading content...
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Pagination -->
+                            <div
+                                class="flex items-center justify-between p-4 border-t border-border-dark bg-white/[0.01]">
+                                <span id="paginationInfo" class="text-xs text-slate-500">Showing 0 items</span>
+                                <div class="flex items-center gap-1">
+                                    <button class="p-1 text-slate-500 hover:text-white disabled:opacity-50" disabled>
+                                        <span class="material-symbols-outlined"
+                                            style="font-size: 20px;">chevron_left</span>
+                                    </button>
+                                    <button
+                                        class="w-7 h-7 flex items-center justify-center rounded bg-primary text-white text-xs font-medium">1</button>
+                                    <button class="p-1 text-slate-500 hover:text-white">
+                                        <span class="material-symbols-outlined"
+                                            style="font-size: 20px;">chevron_right</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Links / Secondary Stats -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div
+                            class="bg-surface-darker border border-border-dark p-6 rounded-xl flex flex-col justify-between gap-4">
+                            <div>
+                                <h3 class="text-white font-bold text-lg">System Health</h3>
+                                <p class="text-slate-400 text-sm mt-1">Status of portfolio deployment and database.</p>
+                            </div>
+                            <div class="flex items-center gap-4 mt-2">
+                                <div class="flex items-center gap-2">
+                                    <div id="dbStatus" class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse">
+                                    </div>
+                                    <span class="text-sm text-slate-300">Database: Online</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <div id="apiStatus" class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse">
+                                    </div>
+                                    <span class="text-sm text-slate-300">API: Healthy</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div
+                            class="bg-gradient-to-br from-primary/20 to-surface-darker border border-border-dark p-6 rounded-xl flex flex-col justify-between gap-4 relative overflow-hidden">
+                            <div
+                                class="absolute -top-10 -right-10 w-32 h-32 bg-primary/20 blur-3xl rounded-full pointer-events-none">
+                            </div>
+                            <div>
+                                <h3 class="text-white font-bold text-lg">Frontend Portfolio</h3>
+                                <p class="text-slate-400 text-sm mt-1">View your public portfolio website.</p>
+                            </div>
+                            <div
+                                class="flex items-center justify-between mt-2 bg-surface-darker/50 p-3 rounded-lg border border-white/5 backdrop-blur-sm">
+                                <div class="flex flex-col">
+                                    <span class="text-white text-sm font-semibold">raydiansyah.com</span>
+                                    <span class="text-slate-400 text-xs">Running on port 5173</span>
+                                </div>
+                                <a href="http://localhost:5173" target="_blank"
+                                    class="text-primary text-xs font-bold uppercase tracking-wide hover:text-white transition-colors">Visit</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const API_URL = window.location.origin;
+
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            document.getElementById('mobileMenu').classList.toggle('hidden');
+        }
+
+        // Logout function
+        async function logout() {
+            try {
+                await fetch(`${API_URL}/api/auth/sign-out`, {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+            } catch (e) { }
+            window.location.href = '/login';
+        }
+
+        // Load dashboard data
+        async function loadDashboardData() {
+            try {
+                // Load projects count
+                const projectsRes = await fetch(`${API_URL}/api/projects`);
+                const projects = await projectsRes.json();
+                document.getElementById('stat-projects').textContent = Array.isArray(projects) ? projects.length : 0;
+
+                // Load experiences count
+                const expRes = await fetch(`${API_URL}/api/experiences`);
+                const experiences = await expRes.json();
+                document.getElementById('stat-experience').textContent = Array.isArray(experiences) ? experiences.length : 0;
+
+                // Populate table with combined data
+                const allContent = [];
+
+                if (Array.isArray(projects)) {
+                    projects.forEach(p => allContent.push({
+                        id: p.id,
+                        title: p.title,
+                        category: p.category || 'Project',
+                        categoryColor: 'blue',
+                        date: p.updatedAt || p.createdAt,
+                        status: p.isPublic ? 'Published' : 'Draft',
+                        type: 'project'
+                    }));
+                }
+
+                if (Array.isArray(experiences)) {
+                    experiences.forEach(e => allContent.push({
+                        id: e.id,
+                        title: e.title + ' - ' + e.company,
+                        category: 'Experience',
+                        categoryColor: 'orange',
+                        date: e.updatedAt || e.createdAt,
+                        status: 'Published',
+                        type: 'experience'
+                    }));
+                }
+
+                renderTable(allContent);
+                document.getElementById('paginationInfo').textContent = `Showing ${allContent.length} items`;
+
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+            }
+        }
+
+        function renderTable(items) {
+            const tbody = document.getElementById('contentTable');
+
+            if (!items.length) {
+                tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-500">No content found. Add your first item!</td></tr>';
+                return;
+            }
+
+            const categoryColors = {
+                blue: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+                orange: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
+                purple: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
+                green: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+            };
+
+            tbody.innerHTML = items.slice(0, 10).map(item => `
+                <tr class="group hover:bg-white/[0.02] transition-colors">
+                    <td class="p-4">
+                        <div class="flex flex-col">
+                            <span class="text-white font-medium">${item.title}</span>
+                            <span class="text-slate-500 text-xs">ID: ${item.id?.slice(0, 8) || 'N/A'}</span>
+                        </div>
+                    </td>
+                    <td class="p-4">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md ${categoryColors[item.categoryColor] || categoryColors.blue} text-xs font-medium border">
+                            ${item.category}
+                        </span>
+                    </td>
+                    <td class="p-4 text-slate-400">${formatDate(item.date)}</td>
+                    <td class="p-4">
+                        <span class="inline-flex items-center gap-1.5 ${item.status === 'Published' ? 'text-emerald-400' : 'text-slate-400'} text-xs font-medium">
+                            <span class="w-1.5 h-1.5 rounded-full ${item.status === 'Published' ? 'bg-emerald-400' : 'bg-slate-400'}"></span>
+                            ${item.status}
+                        </span>
+                    </td>
+                    <td class="p-4 text-right">
+                        <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button class="p-1.5 text-slate-400 hover:text-white hover:bg-white/10 rounded-md transition-colors" title="Edit">
+                                <span class="material-symbols-outlined" style="font-size: 18px;">edit</span>
+                            </button>
+                            <button onclick="deleteItem('${item.type}', '${item.id}')" class="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-md transition-colors" title="Delete">
+                                <span class="material-symbols-outlined" style="font-size: 18px;">delete</span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+        async function deleteItem(type, id) {
+            if (!confirm('Are you sure you want to delete this item?')) return;
+
+            try {
+                const endpoint = type === 'project' ? 'projects' : 'experiences';
+                await fetch(`${API_URL}/api/${endpoint}/${id}`, {
+                    method: 'DELETE',
+                    credentials: 'include'
+                });
+                loadDashboardData();
+            } catch (error) {
+                alert('Error deleting item');
+            }
+        }
+
+        // Check API health
+        async function checkHealth() {
+            try {
+                const res = await fetch(`${API_URL}/api/health`);
+                if (res.ok) {
+                    document.getElementById('apiStatus').classList.remove('bg-red-500');
+                    document.getElementById('apiStatus').classList.add('bg-emerald-500');
+                }
+            } catch {
+                document.getElementById('apiStatus').classList.remove('bg-emerald-500');
+                document.getElementById('apiStatus').classList.add('bg-red-500');
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDashboardData();
+            checkHealth();
+        });
+    </script>
+</body>
+
+</html>

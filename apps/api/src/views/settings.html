@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Settings - Admin</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <script>tailwind.config = { darkMode: "class", theme: { extend: { colors: { "primary": "#1152d4", "background-dark": "#101622", "surface-darker": "#111318", "border-dark": "#334155" }, fontFamily: { "display": ["Inter", "sans-serif"] } } } }</script>
+    <style>
+        ::-webkit-scrollbar {
+            width: 8px
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #101622
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400;
+            font-size: 20px
+        }
+
+        .icon-filled {
+            font-variation-settings: 'FILL' 1
+        }
+    </style>
+</head>
+
+<body class="bg-background-dark text-white font-display overflow-hidden">
+    <div class="flex h-screen w-full">
+        <aside class="hidden lg:flex w-72 flex-col border-r border-border-dark bg-surface-darker h-full shrink-0">
+            <div class="flex flex-col h-full p-4">
+                <div class="mb-8 px-2">
+                    <h1 class="text-white text-xl font-bold">Ray Diansyah</h1>
+                    <p class="text-slate-400 text-xs uppercase mt-1">Admin Console</p>
+                </div>
+                <nav class="flex-1 flex flex-col gap-1 overflow-y-auto">
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5"
+                        href="/dashboard"><span class="material-symbols-outlined">dashboard</span><span
+                            class="text-sm">Dashboard</span></a>
+                    <p class="mt-6 mb-2 px-3 text-xs font-semibold text-slate-500 uppercase">Content</p>
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5"
+                        href="/admin/projects"><span class="material-symbols-outlined">folder_open</span><span
+                            class="text-sm">Projects</span></a>
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5"
+                        href="/admin/about"><span class="material-symbols-outlined">person</span><span
+                            class="text-sm">About Me</span></a>
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5"
+                        href="/admin/skills"><span class="material-symbols-outlined">bolt</span><span
+                            class="text-sm">Skills</span></a>
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5"
+                        href="/admin/experience"><span class="material-symbols-outlined">work</span><span
+                            class="text-sm">Work Experience</span></a>
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5"
+                        href="/admin/trainer"><span class="material-symbols-outlined">school</span><span
+                            class="text-sm">Trainer Experience</span></a>
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5"
+                        href="/admin/services"><span class="material-symbols-outlined">local_offer</span><span
+                            class="text-sm">Training Services</span></a>
+                    <p class="mt-6 mb-2 px-3 text-xs font-semibold text-slate-500 uppercase">System</p>
+                    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/20 text-primary border border-primary/10"
+                        href="/admin/settings"><span class="material-symbols-outlined icon-filled">settings</span><span
+                            class="text-sm font-semibold">Settings</span></a>
+                </nav>
+                <div class="mt-auto pt-4 border-t border-white/10">
+                    <button onclick="toggleLang()"
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-300 hover:bg-white/5 w-full"><span
+                            class="material-symbols-outlined">translate</span><span id="langBtn"
+                            class="text-sm">Language: EN</span></button>
+                    <button onclick="location.href='/login'"
+                        class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-red-400 hover:bg-red-500/10 w-full"><span
+                            class="material-symbols-outlined">logout</span><span class="text-sm">Logout</span></button>
+                </div>
+            </div>
+        </aside>
+        <main class="flex-1 flex flex-col h-full overflow-hidden">
+            <div class="flex-1 overflow-y-auto">
+                <div class="container mx-auto max-w-4xl p-6 lg:p-10 space-y-8">
+                    <div class="flex items-center gap-2 text-sm text-slate-400"><a href="/dashboard"
+                            class="hover:text-white">Home</a><span class="material-symbols-outlined"
+                            style="font-size:16px">chevron_right</span><span class="text-white font-medium">Settings /
+                            Pengaturan</span></div>
+                    <div>
+                        <h2 class="text-white text-3xl font-black">Settings / Pengaturan</h2>
+                        <p class="text-slate-400 mt-2">Configure your portfolio and admin preferences.</p>
+                    </div>
+
+                    <!-- Language Settings -->
+                    <div class="bg-surface-darker border border-border-dark rounded-xl p-6">
+                        <h3 class="text-white font-bold text-lg mb-4 flex items-center gap-2"><span
+                                class="material-symbols-outlined text-primary">translate</span>Language / Bahasa</h3>
+                        <div class="flex items-center gap-4">
+                            <button id="btnEN" onclick="setLang('EN')"
+                                class="px-6 py-3 rounded-lg border font-medium transition-colors">English</button>
+                            <button id="btnID" onclick="setLang('ID')"
+                                class="px-6 py-3 rounded-lg border font-medium transition-colors">Indonesia</button>
+                        </div>
+                    </div>
+
+                    <!-- Registration Settings -->
+                    <div class="bg-surface-darker border border-border-dark rounded-xl p-6">
+                        <h3 class="text-white font-bold text-lg mb-4 flex items-center gap-2"><span
+                                class="material-symbols-outlined text-primary">person_add</span>Registration /
+                            Pendaftaran</h3>
+                        <p class="text-slate-400 text-sm mb-4">Control whether new users can register on the login page.
+                        </p>
+                        <div class="flex items-center gap-4">
+                            <button id="btnRegisterOn" onclick="setRegister(true)"
+                                class="px-6 py-3 rounded-lg border font-medium transition-colors flex items-center gap-2">
+                                <span class="material-symbols-outlined">check_circle</span>
+                                Enabled / Aktif
+                            </button>
+                            <button id="btnRegisterOff" onclick="setRegister(false)"
+                                class="px-6 py-3 rounded-lg border font-medium transition-colors flex items-center gap-2">
+                                <span class="material-symbols-outlined">cancel</span>
+                                Disabled / Nonaktif
+                            </button>
+                        </div>
+                        <p id="registerStatus" class="text-slate-500 text-xs mt-4"></p>
+                    </div>
+
+                    <!-- Theme Settings -->
+                    <div class="bg-surface-darker border border-border-dark rounded-xl p-6">
+                        <h3 class="text-white font-bold text-lg mb-4 flex items-center gap-2"><span
+                                class="material-symbols-outlined text-primary">palette</span>Theme / Tema</h3>
+                        <div class="flex items-center gap-4">
+                            <button onclick="setTheme('dark')"
+                                class="px-6 py-3 rounded-lg bg-background-dark border border-border-dark text-white font-medium flex items-center gap-2"><span
+                                    class="material-symbols-outlined">dark_mode</span>Dark / Gelap</button>
+                            <button onclick="setTheme('light')"
+                                class="px-6 py-3 rounded-lg bg-slate-100 border border-slate-200 text-slate-800 font-medium flex items-center gap-2"><span
+                                    class="material-symbols-outlined">light_mode</span>Light / Terang</button>
+                        </div>
+                    </div>
+
+                    <!-- API Status -->
+                    <div class="bg-surface-darker border border-border-dark rounded-xl p-6">
+                        <h3 class="text-white font-bold text-lg mb-4 flex items-center gap-2"><span
+                                class="material-symbols-outlined text-primary">api</span>API Status</h3>
+                        <div id="apiInfo" class="space-y-3"></div>
+                    </div>
+
+                    <!-- Frontend Integration -->
+                    <div class="bg-surface-darker border border-border-dark rounded-xl p-6">
+                        <h3 class="text-white font-bold text-lg mb-4 flex items-center gap-2"><span
+                                class="material-symbols-outlined text-primary">link</span>Frontend Integration</h3>
+                        <p class="text-slate-400 text-sm mb-4">Use these API endpoints to fetch data in your frontend
+                            portfolio.</p>
+                        <div class="bg-background-dark rounded-lg p-4 text-sm font-mono text-slate-300 space-y-2">
+                            <p><span class="text-emerald-400">GET</span> <span class="text-slate-400">/api/about</span>
+                                - About info</p>
+                            <p><span class="text-emerald-400">GET</span> <span
+                                    class="text-slate-400">/api/projects</span> - All projects</p>
+                            <p><span class="text-emerald-400">GET</span> <span class="text-slate-400">/api/skills</span>
+                                - All skills</p>
+                            <p><span class="text-emerald-400">GET</span> <span
+                                    class="text-slate-400">/api/experiences</span> - Work experiences</p>
+                            <p><span class="text-emerald-400">GET</span> <span
+                                    class="text-slate-400">/api/trainer</span> - Trainer experiences</p>
+                            <p><span class="text-emerald-400">GET</span> <span
+                                    class="text-slate-400">/api/services</span> - Training services</p>
+                        </div>
+                        <p class="text-slate-500 text-xs mt-4">Base URL: <code
+                                class="bg-background-dark px-2 py-1 rounded">${window.location.origin}</code></p>
+                    </div>
+
+                    <!-- Danger Zone -->
+                    <div class="bg-red-500/5 border border-red-500/20 rounded-xl p-6">
+                        <h3 class="text-red-400 font-bold text-lg mb-4 flex items-center gap-2"><span
+                                class="material-symbols-outlined">warning</span>Danger Zone</h3>
+                        <p class="text-slate-400 text-sm mb-4">These actions are irreversible. Please proceed with
+                            caution.</p>
+                        <button onclick="clearAllData()"
+                            class="px-4 py-2 rounded-lg bg-red-500/20 border border-red-500/30 text-red-400 font-medium hover:bg-red-500/30 transition-colors">Clear
+                            All Data / Hapus Semua Data</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        const API = window.location.origin;
+        let lang = localStorage.getItem('lang') || 'EN';
+        let registerEnabled = true;
+
+        function setLang(l) {
+            lang = l;
+            localStorage.setItem('lang', l);
+            updateLangUI();
+        }
+
+        function updateLangUI() {
+            document.getElementById('langBtn').textContent = `Language: ${lang}`;
+            document.getElementById('btnEN').className = `px-6 py-3 rounded-lg border font-medium transition-colors ${lang === 'EN' ? 'bg-primary text-white border-primary' : 'bg-transparent text-slate-300 border-border-dark hover:bg-white/5'}`;
+            document.getElementById('btnID').className = `px-6 py-3 rounded-lg border font-medium transition-colors ${lang === 'ID' ? 'bg-primary text-white border-primary' : 'bg-transparent text-slate-300 border-border-dark hover:bg-white/5'}`;
+        }
+
+        function toggleLang() { setLang(lang === 'EN' ? 'ID' : 'EN'); }
+
+        function setTheme(t) {
+            alert(`Theme switching to ${t} mode is not fully implemented yet.`);
+        }
+
+        // Register settings
+        async function loadRegisterSetting() {
+            try {
+                const res = await fetch(`${API}/api/settings/register_enabled`);
+                const data = await res.json();
+                registerEnabled = data.value === 'true';
+                updateRegisterUI();
+            } catch {
+                document.getElementById('registerStatus').textContent = 'Could not load setting';
+            }
+        }
+
+        function updateRegisterUI() {
+            document.getElementById('btnRegisterOn').className = `px-6 py-3 rounded-lg border font-medium transition-colors flex items-center gap-2 ${registerEnabled ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-transparent text-slate-300 border-border-dark hover:bg-white/5'}`;
+            document.getElementById('btnRegisterOff').className = `px-6 py-3 rounded-lg border font-medium transition-colors flex items-center gap-2 ${!registerEnabled ? 'bg-red-500 text-white border-red-500' : 'bg-transparent text-slate-300 border-border-dark hover:bg-white/5'}`;
+            document.getElementById('registerStatus').textContent = registerEnabled ? 'New users can register on the login page.' : 'New user registration is disabled.';
+        }
+
+        async function setRegister(enabled) {
+            try {
+                const res = await fetch(`${API}/api/settings/register_enabled`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ value: enabled ? 'true' : 'false' })
+                });
+                if (res.ok) {
+                    registerEnabled = enabled;
+                    updateRegisterUI();
+                } else {
+                    alert('Failed to update setting');
+                }
+            } catch {
+                alert('Error updating setting');
+            }
+        }
+
+        async function loadApiInfo() {
+            try {
+                const healthRes = await fetch(`${API}/api/health`);
+                const health = await healthRes.json();
+                document.getElementById('apiInfo').innerHTML = `
+                    <div class="flex items-center gap-3"><div class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div><span class="text-slate-300">API: Online</span><span class="text-slate-500 text-xs">(${health.timestamp})</span></div>
+                    <div class="flex items-center gap-3"><div class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div><span class="text-slate-300">Database: Connected</span></div>
+                `;
+            } catch {
+                document.getElementById('apiInfo').innerHTML = '<div class="flex items-center gap-3"><div class="w-2.5 h-2.5 rounded-full bg-red-500"></div><span class="text-red-400">API: Offline</span></div>';
+            }
+        }
+
+        async function clearAllData() {
+            if (!confirm('This will delete ALL your portfolio data. Are you sure? / Ini akan menghapus SEMUA data portfolio Anda. Yakin?')) return;
+            if (!confirm('This action CANNOT be undone! Type "DELETE" to confirm')) return;
+            alert('Feature not implemented for safety.');
+        }
+
+        updateLangUI();
+        loadApiInfo();
+        loadRegisterSetting();
+    </script>
+</body>
+
+</html>
