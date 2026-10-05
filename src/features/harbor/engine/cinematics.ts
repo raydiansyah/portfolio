@@ -3,7 +3,6 @@ import { Vector3 } from 'three'
 import { facingDir, type berthPoint } from '../data/destinations'
 import type { Destination } from '../types'
 import type { CameraRig } from './cameraRig'
-import { FOLLOW } from './cameraRig'
 import type { BoatState } from './physics'
 
 /**
@@ -59,13 +58,13 @@ export function playDiscover(ctx: CineContext, point: Vector3) {
   const { rig } = ctx
   rig.bias.point.copy(point)
   gsap.killTweensOf(rig.bias)
-  gsap.killTweensOf(rig.params)
+  gsap.killTweensOf(rig.extra)
   gsap
     .timeline()
     .to(rig.bias, { weight: 0.38, duration: 1.3, ease: 'power2.inOut' })
-    .to(rig.params, { distance: FOLLOW.distance + 3, height: FOLLOW.height + 1.3, duration: 1.3, ease: 'power2.inOut' }, '<')
+    .to(rig.extra, { distance: 3, height: 1.3, duration: 1.3, ease: 'power2.inOut' }, '<')
     .to(rig.bias, { weight: 0, duration: 1.6, ease: 'power2.inOut' }, '+=1.8')
-    .to(rig.params, { distance: FOLLOW.distance, height: FOLLOW.height, duration: 1.6, ease: 'power2.inOut' }, '<')
+    .to(rig.extra, { distance: 0, height: 0, duration: 1.6, ease: 'power2.inOut' }, '<')
 }
 
 /** Side shot of the berth: the harbor becomes the focal point while content opens. */
@@ -81,7 +80,7 @@ export function playDockShot(ctx: CineContext, d: Destination, berth: ReturnType
     .to(ctx.rig.focus.pos, { x: pos.x, y: pos.y, z: pos.z, duration: t, ease: 'expo.inOut' }, 0)
     .to(ctx.rig.focus.look, { x: look.x, y: look.y, z: look.z, duration: t, ease: 'expo.inOut' }, 0)
     .to(ctx.rig.focus, { weight: 1, duration: t, ease: 'expo.inOut' }, 0)
-    .to(ctx.rig.params, { fov: FOLLOW.fov - 4, duration: t, ease: 'power2.inOut' }, 0)
+    .to(ctx.rig.extra, { fov: -4, duration: t, ease: 'power2.inOut' }, 0)
     .to(ctx.dim, { value: 1, duration: dur(ctx, 0.9), ease: 'power2.out' }, t * 0.5)
 }
 
@@ -102,7 +101,7 @@ export function playReturn(ctx: CineContext) {
   return gsap
     .timeline()
     .to(ctx.rig.focus, { weight: 0, duration: t, ease: 'power2.inOut' }, 0)
-    .to(ctx.rig.params, { fov: FOLLOW.fov, duration: t, ease: 'power2.inOut' }, 0)
+    .to(ctx.rig.extra, { fov: 0, duration: t, ease: 'power2.inOut' }, 0)
     .to(ctx.dim, { value: 0, duration: t * 0.8, ease: 'power2.out' }, 0)
 }
 
@@ -121,5 +120,5 @@ export function playProjectReveal(ctx: CineContext, d: Destination, bayCentre: V
     .to(rise, { value: 1, duration: dur(ctx, 1.6), ease: 'power3.out' }, t * 0.35)
     .addLabel('revealed')
     .to(ctx.rig.focus, { weight: 0, duration: dur(ctx, 1.5), ease: 'power2.inOut' }, '+=0.8')
-    .to(ctx.rig.params, { fov: FOLLOW.fov, duration: dur(ctx, 1.5), ease: 'power2.inOut' }, '<')
+    .to(ctx.rig.extra, { fov: 0, duration: dur(ctx, 1.5), ease: 'power2.inOut' }, '<')
 }

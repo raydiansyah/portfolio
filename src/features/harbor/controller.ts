@@ -1,5 +1,5 @@
-import { harborStore } from './store'
-import type { DestinationId, PanelId } from './types'
+import { CAMERA_VIEWS, STORAGE_VIEW, harborStore } from './store'
+import type { CameraViewId, DestinationId, PanelId } from './types'
 
 /** Imperative surface the React layer may call on the engine. */
 export interface EngineHandle {
@@ -17,6 +17,7 @@ export interface EngineHandle {
   /** Dock/enter the nearest harbor or project buoy if in ENTER range. */
   interactNearest(): void
   skipIntro(): void
+  setCameraView(id: CameraViewId): void
   dispose(): void
 }
 
@@ -125,6 +126,21 @@ export const actions = {
 
   interact() {
     engine?.interactNearest()
+  },
+
+  setCameraView(id: CameraViewId) {
+    harborStore.set({ cameraView: id })
+    try {
+      localStorage.setItem(STORAGE_VIEW, id)
+    } catch {
+      /* storage unavailable */
+    }
+    engine?.setCameraView(id)
+  },
+
+  cycleCameraView() {
+    const i = CAMERA_VIEWS.indexOf(harborStore.get().cameraView)
+    actions.setCameraView(CAMERA_VIEWS[(i + 1) % CAMERA_VIEWS.length])
   },
 }
 

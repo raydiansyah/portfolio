@@ -39,6 +39,8 @@ export type InputDevice = 'keyboard' | 'mouse' | 'touch'
 
 export type QualityTier = 'high' | 'medium' | 'low'
 
+export type CameraViewId = 'chase' | 'close' | 'aerial' | 'cinematic'
+
 /** Events the engine pushes to the UI layer. */
 export type EngineEvent =
   | { type: 'progress'; value: number }

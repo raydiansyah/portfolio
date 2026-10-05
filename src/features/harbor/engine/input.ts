@@ -21,6 +21,10 @@ export interface InputCallbacks {
   onFirstInput(): void
   /** Pointer released without dragging (screen coords relative to element). */
   onTap(x: number, y: number): void
+  /** Right-button drag delta in pixels (camera orbit). */
+  onOrbit(dx: number, dy: number): void
+  /** Right-button click without dragging (next camera view). */
+  onCycleView(): void
 }
 
 const isTyping = (t: EventTarget | null) =>
@@ -31,6 +35,8 @@ export class InputController {
   private pressed = new Set<string>()
   private wheel = 0
   private drag: { id: number; x0: number; y0: number; x: number; y: number; moved: boolean } | null = null
+  /** Right-button gesture: orbit while dragging, cycle view on a plain click. */
+  private look: { id: number; x: number; y: number; moved: boolean } | null = null
   private joystick = { x: 0, y: 0 }
   private smoothed: ControlInput = { throttle: 0, steer: 0 }
   private started = false
@@ -50,7 +56,10 @@ export class InputController {
     el.addEventListener('pointermove', this.onPointerMove)
     el.addEventListener('pointerup', this.onPointerUp)
     el.addEventListener('pointercancel', this.onPointerUp)
+    el.addEventListener('contextmenu', this.onContextMenu)
   }
+
+  private onContextMenu = (e: Event) => e.preventDefault()
 
   private first(device: InputDevice) {
     this.cb.onDevice(device)
@@ -88,11 +97,28 @@ export class InputController {
   }
 
   private onPointerDown = (e: PointerEvent) => {
-    if (!this.enabled || e.button !== 0) return
+    if (!this.enabled) return
+    if (e.button === 2) {
+      this.look = { id: e.pointerId, x: e.clientX, y: e.clientY, moved: false }
+      this.el.setPointerCapture(e.pointerId)
+      return
+    }
+    if (e.button !== 0) return
     this.drag = { id: e.pointerId, x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY, moved: false }
   }
 
   private onPointerMove = (e: PointerEvent) => {
+    const l = this.look
+    if (l && l.id === e.pointerId) {
+      const dx = e.clientX - l.x
+      const dy = e.clientY - l.y
+      if (!l.moved && Math.hypot(dx, dy) < DRAG_THRESHOLD) return
+      l.moved = true
+      l.x = e.clientX
+      l.y = e.clientY
+      this.cb.onOrbit(dx, dy)
+      return
+    }
     const d = this.drag
     if (!d || d.id !== e.pointerId) return
     d.x = e.clientX
@@ -105,6 +131,12 @@ export class InputController {
   }
 
   private onPointerUp = (e: PointerEvent) => {
+    const l = this.look
+    if (l && l.id === e.pointerId) {
+      if (!l.moved && e.type === 'pointerup') this.cb.onCycleView()
+      this.look = null
+      return
+    }
     const d = this.drag
     if (!d || d.id !== e.pointerId) return
     if (!d.moved) {
@@ -158,6 +190,7 @@ export class InputController {
     this.pressed.clear()
     this.wheel = 0
     this.drag = null
+    this.look = null
     this.joystick.x = 0
     this.joystick.y = 0
   }
@@ -171,5 +204,6 @@ export class InputController {
     this.el.removeEventListener('pointermove', this.onPointerMove)
     this.el.removeEventListener('pointerup', this.onPointerUp)
     this.el.removeEventListener('pointercancel', this.onPointerUp)
+    this.el.removeEventListener('contextmenu', this.onContextMenu)
   }
 }

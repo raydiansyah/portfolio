@@ -2,10 +2,11 @@ import {
   ACESFilmicToneMapping, DirectionalLight, PCFShadowMap, Raycaster, SRGBColorSpace, Vector2, Vector3,
   WebGLRenderer, type PerspectiveCamera,
 } from 'three'
-import { telemetry } from '../store'
-import type { DestinationId } from '../types'
+import { harborStore, telemetry } from '../store'
+import type { DestinationId, QualityTier } from '../types'
 import type { HarborVisual } from './docks'
-import type { QualitySettings } from './quality'
+import { settingsFor, type QualitySettings } from './quality'
+import type { Rain } from './rain'
 
 /** One-time renderer / light configuration and small stateless helpers for the engine. */
 
@@ -98,4 +99,14 @@ export function waitUntil(done: () => boolean, timeout: number) {
     const check = () => (done() || performance.now() - started > timeout ? resolve() : requestAnimationFrame(check))
     check()
   })
+}
+
+/** Cheap runtime downgrade after sustained low FPS: resolution, shadows, rain density. */
+export function downgrade(tier: QualityTier, reduced: boolean, renderer: WebGLRenderer, sun: DirectionalLight, rain: Rain) {
+  const settings = settingsFor(tier, reduced)
+  renderer.setPixelRatio(Math.min(devicePixelRatio, settings.dprCap))
+  sun.castShadow = false
+  rain.setDensity(tier === 'medium' ? 0.4 : 0.16)
+  harborStore.set({ quality: tier })
+  return settings
 }

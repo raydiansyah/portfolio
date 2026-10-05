@@ -25,6 +25,7 @@ const isTypingTarget = (t: EventTarget | null) =>
 
 /** Engine intents (taps on harbors/buoys, Enter key) become UI actions here. */
 function handleIntent(intent: Intent) {
+  if (intent.type === 'view') return actions.cycleCameraView()
   const s = harborStore.get()
   if (s.activePanel || s.phase === 'docking') return
   if (intent.type === 'project') {
@@ -120,6 +121,8 @@ export default function HarborSection({ isDark, onToggleTheme }: Props) {
       if (e.key === 'm' || e.key === 'M') {
         e.preventDefault()
         actions.toggleMap(true)
+      } else if (e.key === 'c' || e.key === 'C') {
+        actions.cycleCameraView()
       } else if (e.key === 'Enter' && !(e.target instanceof HTMLButtonElement || e.target instanceof HTMLAnchorElement)) {
         actions.interact()
       } else if (/^[1-6]$/.test(e.key)) {

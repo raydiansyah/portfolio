@@ -3,10 +3,10 @@ import { DirectionalLight, FogExp2, HemisphereLight, Mesh, PointLight, Scene, Ve
 import type { EngineHandle } from '../controller'
 import { DESTINATION_BY_ID, berthPoint } from '../data/destinations'
 import { harborStore, telemetry } from '../store'
-import type { DestinationId, InputDevice, QualityTier } from '../types'
+import type { CameraViewId, DestinationId, InputDevice, QualityTier } from '../types'
 import { createAutopilot, pursue, type AutopilotState } from './autopilot'
 import { BoatVisual } from './boat'
-import { CameraRig } from './cameraRig'
+import { CameraRig, VIEWS } from './cameraRig'
 import * as cine from './cinematics'
 import { Docks, WoodBuilder } from './docks'
 import { InputController } from './input'
@@ -25,10 +25,10 @@ import { Sky } from './sky'
 import { Birds } from './birds'
 import { blendEnv, createEnv, tweenTheme, type ThemeMix } from './theme'
 import { Water } from './water'
-import { configureSun, createRenderer, loadSignFonts, pick, waitUntil, writeDebugTelemetry } from './setup'
+import { configureSun, createRenderer, downgrade, loadSignFonts, pick, waitUntil, writeDebugTelemetry } from './setup'
 import * as frameFx from './frame'
 
-export type Intent = { type: 'harbor'; id: DestinationId } | { type: 'project'; index: number }
+export type Intent = { type: 'harbor'; id: DestinationId } | { type: 'project'; index: number } | { type: 'view' }
 
 export interface EngineOptions {
   container: HTMLElement
@@ -106,6 +106,7 @@ export class HarborEngine implements EngineHandle {
     const canvas = this.renderer.domElement
     const { clientWidth: w, clientHeight: h } = opts.container
     this.rig = new CameraRig(w / h, reduced)
+    Object.assign(this.rig.params, VIEWS[harborStore.get().cameraView])
     this.cine = { rig: this.rig, boat: this.state, reduced, dim: this.dim }
 
     this.scene.fog = new FogExp2('#1e2733', 0.01)
@@ -145,6 +146,8 @@ export class HarborEngine implements EngineHandle {
         if (this.mode === 'intro') this.skipIntro()
       },
       onTap: (x, y) => this.onTap(x, y),
+      onOrbit: (dx, dy) => this.rig.orbitBy(dx, dy),
+      onCycleView: () => opts.onIntent({ type: 'view' }),
     }, reduced)
 
     this.applyEnv()
@@ -209,6 +212,7 @@ export class HarborEngine implements EngineHandle {
   }
 
   setJoystick = (x: number, y: number) => this.input.setJoystick(x, y)
+  setCameraView = (id: CameraViewId) => this.rig.setView(id)
 
   setInputEnabled(enabled: boolean) {
     this.input.enabled = enabled && this.mode !== 'docking' && this.mode !== 'docked'
@@ -461,13 +465,8 @@ export class HarborEngine implements EngineHandle {
   private monitor(dt: number) {
     const lower = this.fps.tick(dt) ? nextLowerTier(this.settings.tier) : null
     if (lower) {
-      // Cheap runtime downgrade: resolution, shadows, rain density.
-      this.settings = settingsFor(lower, this.opts.reducedMotion)
-      this.renderer.setPixelRatio(Math.min(devicePixelRatio, this.settings.dprCap))
-      this.sun.castShadow = false
-      this.rain.setDensity(lower === 'medium' ? 0.4 : 0.16)
+      this.settings = downgrade(lower, this.opts.reducedMotion, this.renderer, this.sun, this.rain)
       this.onResize()
-      harborStore.set({ quality: lower })
     }
     if ((this.timers.debug -= dt) <= 0) {
       writeDebugTelemetry(this.renderer, this.fps.fps, this.rig.camera)
@@ -480,7 +479,7 @@ export class HarborEngine implements EngineHandle {
     this.running = false
     this.renderer.setAnimationLoop(null)
     this.intro?.kill()
-    gsap.killTweensOf([this.rig.focus, this.rig.params, this.rig.bias, this.mix, this.dim, this.state, this.landmarks.buoyRise])
+    gsap.killTweensOf([this.rig.focus, this.rig.params, this.rig.extra, this.rig.orbit, this.rig.bias, this.mix, this.dim, this.state, this.landmarks.buoyRise])
     window.removeEventListener('resize', this.onResize)
     document.removeEventListener('visibilitychange', this.onVisibility)
     this.resizeObserver.disconnect()

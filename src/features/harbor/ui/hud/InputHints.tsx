@@ -7,12 +7,14 @@ const HINTS: Record<InputDevice, Hint[]> = {
   keyboard: [
     { keys: ['W', 'A', 'S', 'D'], action: 'Move' },
     { keys: ['M'], action: 'Map' },
+    { keys: ['C'], action: 'View' },
     { keys: ['ESC'], action: 'Close' },
   ],
   mouse: [
     { keys: ['DRAG'], action: 'Steer' },
     { keys: ['SCROLL'], action: 'Move' },
-    { keys: ['M'], action: 'Map' },
+    { keys: ['RIGHT-DRAG'], action: 'Look' },
+    { keys: ['RIGHT-CLICK'], action: 'View' },
   ],
   touch: [
     { keys: ['JOYSTICK'], action: 'Move' },

@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react'
-import type { DestinationId, InputDevice, PanelId, Phase, QualityTier, Tier } from './types'
+import type { CameraViewId, DestinationId, InputDevice, PanelId, Phase, QualityTier, Tier } from './types'
 
 /**
  * Low-frequency UI state shared between the engine and React.
@@ -29,6 +29,7 @@ export interface HarborState {
   autopilot: boolean
   mapOpen: boolean
   menuOpen: boolean
+  cameraView: CameraViewId
   toasts: Toast[]
 }
 
@@ -39,6 +40,18 @@ export type Toast =
 
 const STORAGE_DISCOVERED = 'harbor:discovered'
 const STORAGE_SECRETS = 'harbor:secrets'
+export const STORAGE_VIEW = 'harbor:view'
+/** Cycle order for the VIEW button, `C` key and right-click. */
+export const CAMERA_VIEWS: CameraViewId[] = ['chase', 'close', 'aerial', 'cinematic']
+
+function readView(): CameraViewId {
+  try {
+    const v = localStorage.getItem(STORAGE_VIEW) as CameraViewId | null
+    return v && CAMERA_VIEWS.includes(v) ? v : 'chase'
+  } catch {
+    return 'chase'
+  }
+}
 
 function readList<T extends string>(key: string): T[] {
   try {
@@ -87,6 +100,7 @@ let state: HarborState = {
   autopilot: false,
   mapOpen: false,
   menuOpen: false,
+  cameraView: readView(),
   toasts: [],
 }
 
