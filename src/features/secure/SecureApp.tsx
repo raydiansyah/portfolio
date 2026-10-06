@@ -1,14 +1,17 @@
 import { Loader2 } from 'lucide-react'
-import { useEffect } from 'react'
+import { Suspense, lazy, useEffect } from 'react'
+import { PageSkeleton } from '@/features/admin/ui/PageSkeleton'
 import { useAdminSession } from './auth'
-import { DashboardPage } from './DashboardPage'
 import { LoginPage } from './LoginPage'
+
+// The admin shell only downloads after a successful admin sign-in.
+const AdminApp = lazy(() => import('@/features/admin/AdminApp'))
 
 /**
  * Admin area mounted for /secure/*. Not linked from the public harbor and
  * loaded as a separate chunk, so visitors never download it.
- *   /secure            -> login (or dashboard when already signed in)
- *   /secure/dashboard  -> dashboard (guarded)
+ *   /secure      -> login (redirects to /secure/dashboard when already signed in)
+ *   /secure/*    -> admin modules (guarded; signed-out visitors go back to /secure)
  */
 
 const LOGIN = '/secure'
@@ -33,8 +36,9 @@ export default function SecureApp() {
   // (signed-in admins -> /secure/dashboard, everyone else -> /secure).
   useEffect(() => {
     if (auth.status === 'loading') return
-    const to = auth.status === 'admin' ? DASHBOARD : LOGIN
-    if (location.pathname !== to) history.replaceState(null, '', to)
+    const path = location.pathname.replace(/\/+$/, '')
+    if (auth.status === 'signed-out' && path !== LOGIN) history.replaceState(null, '', LOGIN)
+    if (auth.status === 'admin' && path === LOGIN) history.replaceState(null, '', DASHBOARD)
   }, [auth.status])
 
   if (auth.status === 'loading') {
@@ -45,6 +49,12 @@ export default function SecureApp() {
     )
   }
 
-  if (auth.status === 'admin') return <DashboardPage session={auth.session} />
+  if (auth.status === 'admin') {
+    return (
+      <Suspense fallback={<div className="p-8"><PageSkeleton /></div>}>
+        <AdminApp session={auth.session} />
+      </Suspense>
+    )
+  }
   return <LoginPage />
 }

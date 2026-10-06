@@ -64,12 +64,30 @@ export async function signOut() {
 
 export type AdminSession = { status: 'loading' } | { status: 'signed-out' } | { status: 'admin'; session: Session }
 
+/**
+ * DEV ONLY: `?mock-admin=1` (sticky for the tab) fakes an admin session so the dashboard UI can be
+ * exercised without Turnstile/Supabase. `import.meta.env.DEV` is false in
+ * production builds, so this branch is removed by the bundler.
+ */
+function devMockSession(): Session | null {
+  if (!import.meta.env.DEV) return null
+  // Remember for the tab so dev-server reloads and in-app redirects keep the mock session.
+  if (new URLSearchParams(location.search).get('mock-admin') === '1') sessionStorage.setItem('mock-admin', '1')
+  if (sessionStorage.getItem('mock-admin') !== '1') return null
+  const user = { id: 'dev', email: 'dev@localhost', app_metadata: { role: 'owner' }, user_metadata: { name: 'Dev Admin' } }
+  return { user } as unknown as Session
+}
+
 /** Live admin session; non-admin sessions are treated as signed out. */
 export function useAdminSession(): AdminSession {
-  const [state, setState] = useState<AdminSession>(() => (isConfigured() ? { status: 'loading' } : { status: 'signed-out' }))
+  const [state, setState] = useState<AdminSession>(() => {
+    const mock = devMockSession()
+    if (mock) return { status: 'admin', session: mock }
+    return isConfigured() ? { status: 'loading' } : { status: 'signed-out' }
+  })
 
   useEffect(() => {
-    if (!isConfigured()) return
+    if (devMockSession() || !isConfigured()) return
     const resolve = (session: Session | null) =>
       setState(session && isAdmin(session.user) ? { status: 'admin', session } : { status: 'signed-out' })
     void supabase().auth.getSession().then(({ data }) => resolve(data.session))

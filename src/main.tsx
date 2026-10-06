@@ -3,16 +3,17 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
 
-// The admin area is a separate chunk; public visitors never load it.
+// Admin area and slide portal are separate chunks; the harbor never loads them.
 const SecureApp = lazy(() => import('./features/secure/SecureApp'))
-const isSecure = /^\/secure(\/|$)/.test(location.pathname)
+const SlidesPortal = lazy(() => import('./features/slides-portal/SlidesPortal'))
+const path = location.pathname
+const isSecure = /^\/secure(\/|$)/.test(path)
+const isSlides = /^\/slides(\/|$)/.test(path)
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    {isSecure ? (
-      <Suspense fallback={null}>
-        <SecureApp />
-      </Suspense>
+    {isSecure || isSlides ? (
+      <Suspense fallback={null}>{isSecure ? <SecureApp /> : <SlidesPortal />}</Suspense>
     ) : (
       <App />
     )}

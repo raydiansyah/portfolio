@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="color-scheme" content="light dark">
+<title>React Fundamentals</title>
+<style>
+  :root {
+    --bg: #f6f4ef; --fg: #15191d; --muted: #5d656d; --rule: #d9d5cc; --accent: #1f6187; --code-bg: #ebe7de;
+    /* 1 unit = 1% of a 16:9 stage that fits the viewport */
+    --u: min(1vw, 1.7778vh);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #12161b; --fg: #e9edf0; --muted: #9aa4ad; --rule: #2a323a; --accent: #7cc0e6; --code-bg: #1b2229; }
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { height: 100%; background: var(--bg); color: var(--fg); overflow: hidden; }
+  body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; display: grid; place-items: center; }
+  .stage { position: relative; width: calc(var(--u) * 100); aspect-ratio: 16 / 9; }
+  section {
+    position: absolute; inset: 0; padding: calc(var(--u) * 7) calc(var(--u) * 8);
+    display: flex; flex-direction: column; justify-content: center; gap: calc(var(--u) * 2);
+    opacity: 0; visibility: hidden; transition: opacity .35s ease;
+  }
+  section.active { opacity: 1; visibility: visible; }
+  @media (prefers-reduced-motion: reduce) { section { transition: none; } }
+  .kicker { font: 600 calc(var(--u) * 1.2)/1 ui-monospace, "SF Mono", Menlo, monospace; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
+  h1, h2 { font-family: ui-serif, Georgia, "Times New Roman", serif; font-weight: 500; letter-spacing: -0.02em; line-height: 1.05; }
+  h1 { font-size: calc(var(--u) * 7.5); }
+  h2 { font-size: calc(var(--u) * 5); }
+  .rule { width: calc(var(--u) * 6); height: calc(var(--u) * .35); background: var(--accent); }
+  p, li { font-size: calc(var(--u) * 2.1); line-height: 1.45; color: var(--muted); max-width: 62ch; }
+  ul { padding-left: 1.1em; display: grid; gap: calc(var(--u) * .8); }
+  strong { color: var(--fg); font-weight: 600; }
+  pre {
+    font: calc(var(--u) * 1.7)/1.55 ui-monospace, "SF Mono", Menlo, monospace; background: var(--code-bg);
+    border: 1px solid var(--rule); border-radius: calc(var(--u) * .8); padding: calc(var(--u) * 2) calc(var(--u) * 2.4); color: var(--fg); overflow: hidden;
+  }
+  .k { color: var(--accent); }
+  footer {
+    position: absolute; left: calc(var(--u) * 8); right: calc(var(--u) * 8); bottom: calc(var(--u) * 3.5);
+    display: flex; justify-content: space-between; border-top: 1px solid var(--rule); padding-top: calc(var(--u) * 1.2);
+    font: calc(var(--u) * 1.1)/1 ui-monospace, "SF Mono", Menlo, monospace; letter-spacing: .12em; text-transform: uppercase; color: var(--muted);
+  }
+</style>
+</head>
+<body>
+<main class="stage" aria-roledescription="slide deck">
+  <section aria-roledescription="slide" aria-label="1 dari 6">
+    <span class="kicker">Materi kuliah · Pertemuan 3</span>
+    <h1>React<br>Fundamentals</h1>
+    <div class="rule"></div>
+    <p>Komponen, props, state, dan effect: empat ide yang membentuk hampir semua aplikasi React.</p>
+  </section>
+  <section aria-roledescription="slide" aria-label="2 dari 6">
+    <span class="kicker">01 · Komponen</span>
+    <h2>UI adalah fungsi dari data</h2>
+    <p>Komponen adalah fungsi biasa yang mengembalikan JSX. Kecil, bisa dipakai ulang, dan mudah diuji.</p>
+    <pre><span class="k">function</span> Greeting() {
+  <span class="k">return</span> &lt;h1&gt;Halo, kelas!&lt;/h1&gt;
+}</pre>
+  </section>
+  <section aria-roledescription="slide" aria-label="3 dari 6">
+    <span class="kicker">02 · Props</span>
+    <h2>Data mengalir ke bawah</h2>
+    <ul>
+      <li><strong>Props</strong> adalah argumen komponen, bersifat read-only.</li>
+      <li>Induk menentukan, anak menampilkan.</li>
+      <li>Komposisi lewat <strong>children</strong>, bukan pewarisan.</li>
+    </ul>
+  </section>
+  <section aria-roledescription="slide" aria-label="4 dari 6">
+    <span class="kicker">03 · State</span>
+    <h2>Memori milik komponen</h2>
+    <pre><span class="k">const</span> [count, setCount] = useState(0)
+&lt;button onClick={() =&gt; setCount(c =&gt; c + 1)}&gt;
+  Diklik {count}x
+&lt;/button&gt;</pre>
+    <p>Mengubah state memicu render ulang. Jangan mutasi langsung.</p>
+  </section>
+  <section aria-roledescription="slide" aria-label="5 dari 6">
+    <span class="kicker">04 · Effect</span>
+    <h2>Sinkron dengan dunia luar</h2>
+    <ul>
+      <li><strong>useEffect</strong> untuk langganan, timer, dan API browser.</li>
+      <li>Selalu kembalikan fungsi <strong>cleanup</strong>.</li>
+      <li>Data turunan? Hitung saat render, bukan di effect.</li>
+    </ul>
+  </section>
+  <section aria-roledescription="slide" aria-label="6 dari 6">
+    <span class="kicker">Penutup</span>
+    <h2>Latihan minggu ini</h2>
+    <p>Bangun daftar tugas dengan <strong>komponen</strong>, <strong>props</strong>, dan <strong>state</strong>. Simpan ke localStorage dengan satu effect.</p>
+    <div class="rule"></div>
+    <p>Terima kasih. Pertanyaan?</p>
+  </section>
+  <footer><span>React Fundamentals</span><span id="pager">01 / 06</span></footer>
+</main>
+<script>
+  (function () {
+    var slides = document.querySelectorAll('section');
+    var pager = document.getElementById('pager');
+    var embedded = window.parent !== window;
+    var current = -1;
+    var pad = function (n) { return String(n).padStart(2, '0'); };
+
+    function show(i, notify) {
+      i = Math.max(0, Math.min(slides.length - 1, i));
+      if (i === current) return;
+      if (current >= 0) slides[current].classList.remove('active');
+      slides[i].classList.add('active');
+      current = i;
+      pager.textContent = pad(i + 1) + ' / ' + pad(slides.length);
+      // Payload carries no secrets, so '*' is acceptable for the parent target.
+      if (notify && embedded) window.parent.postMessage({ type: 'slides:change', index: i }, '*');
+    }
+
+    window.addEventListener('message', function (e) {
+      if (e.source !== window.parent || !e.data || e.data.type !== 'slides:goto') return;
+      if (typeof e.data.index === 'number') show(e.data.index, false);
+    });
+
+    document.addEventListener('keydown', function (e) {
+      var k = e.key;
+      if (k === 'ArrowRight' || k === 'PageDown' || k === ' ') show(current + 1, true);
+      else if (k === 'ArrowLeft' || k === 'PageUp') show(current - 1, true);
+      else if (k === 'Home') show(0, true);
+      else if (k === 'End') show(slides.length - 1, true);
+      else return;
+      e.preventDefault();
+    });
+
+    show(0, false);
+    if (embedded) window.parent.postMessage({ type: 'slides:ready', count: slides.length }, '*');
+  })();
+</script>
+</body>
+</html>

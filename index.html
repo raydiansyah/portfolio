@@ -15,7 +15,7 @@
 
   <!-- The boat model is needed as soon as the engine boots; start fetching early (public pages only). -->
   <script>
-    if (!/^\/secure(\/|$)/.test(location.pathname)) {
+    if (!/^\/(secure|slides)(\/|$)/.test(location.pathname)) {
       var l = document.createElement('link');
       l.rel = 'preload'; l.as = 'fetch'; l.type = 'model/gltf-binary'; l.crossOrigin = ''; l.href = '/models/boat.glb';
       document.head.appendChild(l);

@@ -44,3 +44,4 @@ supabase/.branches
 .claude/settings.local.json
 .playwright-mcp
 graphify-out
+.claude/launch.json
