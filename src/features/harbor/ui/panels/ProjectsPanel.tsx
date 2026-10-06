@@ -6,10 +6,11 @@ import { PROJECTS } from '../../data/content'
 import { PanelHeading } from './PanelHeading'
 
 const ALL = 'All'
-const CATEGORIES = [ALL, ...new Set(PROJECTS.map((p) => p.category))]
 
 export function ProjectsPanel() {
   const [category, setCategory] = useState(ALL)
+  // Derived per render: live content replaces PROJECTS after this module loads.
+  const categories = [ALL, ...new Set(PROJECTS.map((p) => p.category))]
   // Keep the original PROJECTS index so detail navigation stays stable.
   const items = PROJECTS.map((p, index) => ({ p, index })).filter(
     ({ p }) => category === ALL || p.category === category,
@@ -24,7 +25,7 @@ export function ProjectsPanel() {
       />
 
       <div data-stagger role="group" aria-label="Filter by category" className="flex flex-wrap gap-2">
-        {CATEGORIES.map((c) => {
+        {categories.map((c) => {
           const active = c === category
           return (
             <button
