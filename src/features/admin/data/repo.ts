@@ -56,22 +56,79 @@ export async function updateSettings(patch: Partial<Settings>): Promise<Settings
 
 /* ------------------------------------------------------------- portfolios */
 
-export async function listPortfolios(): Promise<Portfolio[]> {
-  return unwrap(await sb().from('portfolios').select('*').order('order_index'))
+type ProjectRow = Database['public']['Tables']['portofolio']['Row']
+type ProjectUpdate = Database['public']['Tables']['portofolio']['Update']
+
+function toPortfolio(r: ProjectRow, views = 0): Portfolio {
+  return {
+    id: r.id,
+    slug: r.slug,
+    title: r.judul,
+    category: r.kategori,
+    summary: r.ringkasan || null,
+    description: r.tujuan,
+    challenge: r.tantangan,
+    solution: r.solusi,
+    duration: r.durasi,
+    thumbnail_url: r.url_gambar,
+    tech_stack: r.teknologi,
+    live_url: r.url_demo,
+    repo_url: r.url_repo,
+    status: r.status_tampil ? 'published' : 'draft',
+    featured: r.unggulan,
+    view_count: views,
+    order_index: r.urutan,
+    published_at: r.tanggal,
+    created_at: r.tanggal,
+    updated_at: r.tanggal,
+  }
 }
 
-export async function createPortfolio(row: Omit<Portfolio, 'id' | 'created_at' | 'updated_at' | 'view_count' | 'published_at'>): Promise<Portfolio> {
-  const published_at = row.status === 'published' ? new Date().toISOString() : null
-  return unwrap(await sb().from('portfolios').insert({ ...row, published_at } as never).select().single())
+function toProjectRow(p: Partial<Portfolio>): ProjectUpdate {
+  const row: ProjectUpdate = {}
+  if (p.slug !== undefined) row.slug = p.slug
+  if (p.title !== undefined) row.judul = p.title
+  if (p.category !== undefined) row.kategori = p.category
+  if (p.summary !== undefined) row.ringkasan = p.summary ?? ''
+  if (p.description !== undefined) row.tujuan = p.description
+  if (p.challenge !== undefined) row.tantangan = p.challenge
+  if (p.solution !== undefined) row.solusi = p.solution
+  if (p.duration !== undefined) row.durasi = p.duration
+  if (p.thumbnail_url !== undefined) row.url_gambar = p.thumbnail_url
+  if (p.tech_stack !== undefined) row.teknologi = p.tech_stack
+  if (p.live_url !== undefined) row.url_demo = p.live_url
+  if (p.repo_url !== undefined) row.url_repo = p.repo_url
+  if (p.status !== undefined) row.status_tampil = p.status === 'published'
+  if (p.featured !== undefined) row.unggulan = p.featured
+  if (p.order_index !== undefined) row.urutan = p.order_index
+  return row
+}
+
+/** Projects with their click totals (one small index query, counted client-side). */
+export async function listPortfolios(): Promise<Portfolio[]> {
+  const [rows, clicks] = await Promise.all([
+    sb().from('portofolio').select('*').order('urutan').order('tanggal', { ascending: false }),
+    sb().from('portfolio_click').select('portfolio_id'),
+  ])
+  const views = new Map<string, number>()
+  for (const c of unwrap<{ portfolio_id: string }[]>(clicks)) views.set(c.portfolio_id, (views.get(c.portfolio_id) ?? 0) + 1)
+  return unwrap<ProjectRow[]>(rows).map((r) => toPortfolio(r, views.get(r.id)))
+}
+
+export async function createPortfolio(draft: Omit<Portfolio, 'id' | 'created_at' | 'updated_at' | 'view_count' | 'published_at'>): Promise<Portfolio> {
+  const { data } = await sb().auth.getUser()
+  if (!data.user) throw new Error('Not signed in')
+  const row = { ...toProjectRow(draft), created_by: data.user.id } as Database['public']['Tables']['portofolio']['Insert']
+  return toPortfolio(unwrap(await sb().from('portofolio').insert(row).select().single()))
 }
 
 export async function updatePortfolio(id: string, patch: Partial<Portfolio>): Promise<Portfolio> {
-  const rest = omit(patch, 'id', 'created_at', 'updated_at', 'view_count')
-  return unwrap(await sb().from('portfolios').update(rest as never).eq('id', id).select().single())
+  const row = toProjectRow(omit(patch, 'id', 'created_at', 'updated_at', 'view_count', 'published_at'))
+  return toPortfolio(unwrap(await sb().from('portofolio').update(row).eq('id', id).select().single()), patch.view_count)
 }
 
 export async function deletePortfolio(id: string) {
-  unwrap(await sb().from('portfolios').delete().eq('id', id))
+  unwrap(await sb().from('portofolio').delete().eq('id', id))
 }
 
 /* --------------------------------------------------------------- services */
@@ -202,7 +259,7 @@ const count = async (q: PromiseLike<{ count: number | null; error: { message: st
 export async function getStats(slidesActive: number, accessLogs: number): Promise<DashboardStats> {
   const head = { count: 'exact' as const, head: true }
   const [portfolios, services, skills, inboxTotal, inboxUnread] = await Promise.all([
-    count(sb().from('portfolios').select('*', head)),
+    count(sb().from('portofolio').select('*', head)),
     count(sb().from('services').select('*', head)),
     count(sb().from('skills').select('*', head)),
     count(sb().from('pesan_kontak').select('*', head)),

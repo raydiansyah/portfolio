@@ -59,13 +59,23 @@ export interface Settings {
 }
 
 /** portfolios */
+export type PortfolioCategory = 'aplikasi-web' | 'website' | 'company-profile'
+
+/**
+ * Portfolio — dashboard view of a `portofolio` row (mapped in data/repo.ts),
+ * shared with raydiansyah.com. `view_count` = rows in `portfolio_click`.
+ */
 export interface Portfolio {
   id: UUID
   slug: string
   title: string
-  category: string
+  category: PortfolioCategory
   summary: string | null
+  /** Goal / overview (`tujuan`). */
   description: string | null
+  challenge: string | null
+  solution: string | null
+  duration: string | null
   thumbnail_url: string | null // storage: portfolio-media/...
   tech_stack: string[]
   live_url: string | null

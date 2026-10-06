@@ -354,6 +354,9 @@ export type Database = {
       }
       portofolio: {
         Row: {
+          unggulan: boolean
+          url_repo: string | null
+          urutan: number
           created_by: string | null
           durasi: string | null
           galeri: string[]
@@ -372,6 +375,9 @@ export type Database = {
           url_gambar: string | null
         }
         Insert: {
+          unggulan?: boolean
+          url_repo?: string | null
+          urutan?: number
           created_by?: string | null
           durasi?: string | null
           galeri?: string[]
@@ -390,6 +396,9 @@ export type Database = {
           url_gambar?: string | null
         }
         Update: {
+          unggulan?: boolean
+          url_repo?: string | null
+          urutan?: number
           created_by?: string | null
           durasi?: string | null
           galeri?: string[]
@@ -757,7 +766,6 @@ export type Database = {
     Functions: {
       get_public_module: { Args: { p_slug: string }; Returns: Json }
       get_public_slide: { Args: { p_slug: string }; Returns: Json }
-      increment_portfolio_view: { Args: { p_slug: string }; Returns: undefined }
       submit_contact_as_service: {
         Args: {
           p_body: string

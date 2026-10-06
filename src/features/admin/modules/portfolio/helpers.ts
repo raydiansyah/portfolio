@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { Portfolio, PublishStatus } from '@/types/supabase'
+import type { Portfolio, PortfolioCategory, PublishStatus } from '@/types/supabase'
 
 export type SortKey = 'latest' | 'popular' | 'az'
 export type StatusFilter = 'all' | PublishStatus
@@ -70,3 +70,11 @@ export function useDebounced<T>(value: T, ms = 200) {
 }
 
 export const formatViews = (n: number) => new Intl.NumberFormat('id-ID', { notation: 'compact' }).format(n)
+
+/** `portofolio.kategori` values (shared with raydiansyah.com). */
+export const CATEGORY_LABELS: Record<PortfolioCategory, string> = {
+  'aplikasi-web': 'Web App',
+  website: 'Website',
+  'company-profile': 'Company Profile',
+}
+export const CATEGORIES = Object.keys(CATEGORY_LABELS) as PortfolioCategory[]

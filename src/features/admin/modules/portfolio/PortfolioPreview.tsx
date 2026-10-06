@@ -1,4 +1,5 @@
 import { ExternalLink, Eye, FolderGit2, Pencil } from 'lucide-react'
+import { CATEGORY_LABELS } from './helpers'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -18,7 +19,7 @@ export function PortfolioPreview({ item, onClose, onEdit }: { item: Portfolio | 
         {item && (
           <>
             <SheetHeader className="border-b p-4 pr-12">
-              <p className="hud-label text-muted-foreground">{item.category}</p>
+              <p className="hud-label text-muted-foreground">{CATEGORY_LABELS[item.category]}</p>
               <SheetTitle className="text-lg">{item.title}</SheetTitle>
               <SheetDescription>/{item.slug}</SheetDescription>
             </SheetHeader>

@@ -1,4 +1,5 @@
 import { Eye, EyeOff, MoreHorizontal, PanelRightOpen, Pencil, Star, Trash2, Globe } from 'lucide-react'
+import { CATEGORY_LABELS } from './helpers'
 import { useRef, type ReactNode } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -60,7 +61,7 @@ export function PortfolioCard({ item, onEdit, onPreview, onTogglePublish, onDele
 
       <div className="flex flex-1 flex-col gap-3 p-4">
         <div className="flex items-center justify-between gap-2">
-          <span className="hud-label truncate text-muted-foreground">{item.category}</span>
+          <span className="hud-label truncate text-muted-foreground">{CATEGORY_LABELS[item.category]}</span>
           <Badge variant={published ? 'secondary' : 'outline'} className={published ? '' : 'text-muted-foreground'}>
             {published ? 'Published' : 'Draft'}
           </Badge>

@@ -5,12 +5,12 @@ import { useLocation, useSearch } from 'wouter'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import type { Portfolio } from '@/types/supabase'
+import type { Portfolio, PortfolioCategory } from '@/types/supabase'
 import { createPortfolio, deletePortfolio, listPortfolios, updatePortfolio } from '../../data/repo'
 import { EmptyState } from '../../ui/EmptyState'
 import { PageHeader } from '../../ui/PageHeader'
 import { useResource } from '../../ui/useResource'
-import { applyQuery, categoryCounts, SORT_LABELS, useDebounced, type SortKey, type StatusFilter } from './helpers'
+import { CATEGORY_LABELS, applyQuery, categoryCounts, SORT_LABELS, useDebounced, type SortKey, type StatusFilter } from './helpers'
 import { PortfolioCard } from './PortfolioCard'
 import { PortfolioDialog, type PortfolioDraft } from './PortfolioDialog'
 import { PortfolioGridSkeleton } from './PortfolioGridSkeleton'
@@ -46,7 +46,6 @@ export default function PortfolioModule() {
 
   const rows = useMemo(() => data ?? [], [data])
   const counts = useMemo(() => categoryCounts(rows), [rows])
-  const categories = useMemo(() => counts.map(([c]) => c).sort(), [counts])
   const visible = useMemo(() => applyQuery(rows, { category, status, search: debounced, sort }), [rows, category, status, debounced, sort])
   const nextOrder = useMemo(() => rows.reduce((m, r) => Math.max(m, r.order_index + 1), 0), [rows])
   const filtered = category !== null || status !== 'all' || debounced.trim() !== ''
@@ -131,7 +130,7 @@ export default function PortfolioModule() {
             </button>
             {counts.map(([c, n]) => (
               <button key={c} type="button" className={chip} aria-pressed={category === c} onClick={() => setCategory(category === c ? null : c)}>
-                {c} <span className="tabular-nums opacity-70">({n})</span>
+                {CATEGORY_LABELS[c as PortfolioCategory] ?? c} <span className="tabular-nums opacity-70">({n})</span>
               </button>
             ))}
           </div>
@@ -194,7 +193,6 @@ export default function PortfolioModule() {
         open={dialog.open}
         onOpenChange={(open) => setDialog((d) => ({ ...d, open }))}
         item={dialog.item}
-        categories={categories}
         nextOrder={nextOrder}
         onSubmit={save}
       />
