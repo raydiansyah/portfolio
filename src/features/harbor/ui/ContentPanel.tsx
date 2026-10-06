@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import type { ComponentType } from 'react'
 import gsap from 'gsap'
 import { useGSAP } from '@gsap/react'
-import { X } from 'lucide-react'
+import { ArrowLeft, X } from 'lucide-react'
 import { Dialog as DialogPrimitive } from 'radix-ui'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogOverlay, DialogPortal } from '@/components/ui/dialog'
@@ -11,7 +11,7 @@ import { actions } from '../controller'
 import { PROJECTS } from '../data/content'
 import { DESTINATIONS, DESTINATION_BY_ID } from '../data/destinations'
 import { useHarbor } from '../store'
-import type { PanelId } from '../types'
+import type { PanelBack, PanelId } from '../types'
 import { AboutPanel } from './panels/AboutPanel'
 import { ContactPanel } from './panels/ContactPanel'
 import { ExperiencePanel } from './panels/ExperiencePanel'
@@ -43,6 +43,13 @@ function metaFor(panel: PanelId, projectIndex: number) {
   }
   const d = DESTINATION_BY_ID[panel === 'portfolio-list' ? 'portfolio' : panel]
   return `${pad(d.index)} / ${pad(DESTINATIONS.length)} — ${d.label}`
+}
+
+/** Back button label: where it returns to. */
+function backLabel(b: PanelBack) {
+  if (b.kind === 'menu') return 'Menu'
+  if (b.kind === 'map') return 'Map'
+  return DESTINATION_BY_ID[b.panel === 'portfolio-list' ? 'portfolio' : (b.panel as keyof typeof DESTINATION_BY_ID)]?.label ?? 'Back'
 }
 
 /** Scrollable body; mounts with the dialog content so GSAP sees real nodes. */
@@ -77,6 +84,7 @@ function PanelBody({ panel, projectIndex }: { panel: PanelId; projectIndex: numb
 export default function ContentPanel() {
   const active = useHarbor((s) => s.activePanel)
   const projectIndex = useHarbor((s) => s.projectIndex)
+  const back = useHarbor((s) => s.panelBack)
   // Keep rendering the last panel while the close animation plays.
   const [shown, setShown] = useState<PanelId | null>(active)
   if (active !== null && active !== shown) setShown(active)
@@ -92,8 +100,16 @@ export default function ContentPanel() {
         >
           {shown && (
             <>
-              <div className="flex h-14 shrink-0 items-center justify-between gap-4 border-b pr-2 pl-5 md:pl-12">
-                <p className="hud-label truncate text-muted-foreground">{metaFor(shown, projectIndex)}</p>
+              <div className={`flex h-14 shrink-0 items-center justify-between gap-4 border-b pr-2 ${back ? 'pl-2 md:pl-6' : 'pl-5 md:pl-12'}`}>
+                <div className="flex min-w-0 items-center gap-2">
+                  {back && (
+                    <Button variant="ghost" onClick={actions.back} className="h-11 shrink-0 gap-1.5 px-3" aria-label={`Back to ${backLabel(back)}`}>
+                      <ArrowLeft aria-hidden />
+                      <span className="hud-label">{backLabel(back)}</span>
+                    </Button>
+                  )}
+                  <p className="hud-label truncate text-muted-foreground">{metaFor(shown, projectIndex)}</p>
+                </div>
                 <DialogPrimitive.Close asChild>
                   <Button variant="ghost" size="icon" className="size-11" aria-label="Close panel">
                     <X />

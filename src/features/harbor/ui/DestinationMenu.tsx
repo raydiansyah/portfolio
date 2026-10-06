@@ -11,7 +11,7 @@ import type { DestinationId } from '../types'
 const pad = (n: number) => String(n).padStart(2, '0')
 
 function openDestination(id: DestinationId) {
-  actions.openPanel(id === 'portfolio' ? 'portfolio-list' : id)
+  actions.openPanel(id === 'portfolio' ? 'portfolio-list' : id, undefined, 'menu')
 }
 
 /** "Skip exploration" menu: jump straight into any section or set a course. */

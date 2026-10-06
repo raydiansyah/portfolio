@@ -147,7 +147,7 @@ function MapBody() {
               Auto navigate
             </ActionButton>
             <ActionButton onClick={() => actions.navigateTo(sel.id, false)}>Set waypoint only</ActionButton>
-            <ActionButton onClick={() => actions.openPanel(sel.id === 'portfolio' ? 'portfolio-list' : sel.id)}>
+            <ActionButton onClick={() => actions.openPanel(sel.id === 'portfolio' ? 'portfolio-list' : sel.id, undefined, 'map')}>
               Open directly
             </ActionButton>
           </>

@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react'
-import type { CameraViewId, DestinationId, InputDevice, PanelId, Phase, QualityTier, Tier } from './types'
+import type { CameraViewId, DestinationId, InputDevice, PanelBack, PanelId, Phase, QualityTier, Tier } from './types'
 
 /**
  * Low-frequency UI state shared between the engine and React.
@@ -23,6 +23,8 @@ export interface HarborState {
   discovered: DestinationId[]
   secrets: string[]
   activePanel: PanelId | null
+  /** Back target for the open panel (menu, map or the list it came from). */
+  panelBack: PanelBack | null
   projectIndex: number
   projectNearest: number | null
   waypoint: DestinationId | null
@@ -94,6 +96,7 @@ let state: HarborState = {
   discovered: readList<DestinationId>(STORAGE_DISCOVERED),
   secrets: readList<string>(STORAGE_SECRETS),
   activePanel: null,
+  panelBack: null,
   projectIndex: 0,
   projectNearest: null,
   waypoint: null,

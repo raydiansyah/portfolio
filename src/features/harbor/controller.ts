@@ -1,6 +1,6 @@
 import { PROJECTS } from './data/content'
 import { CAMERA_VIEWS, STORAGE_VIEW, harborStore } from './store'
-import type { CameraViewId, DestinationId, PanelId } from './types'
+import type { CameraViewId, DestinationId, PanelBack, PanelId } from './types'
 
 /** Imperative surface the React layer may call on the engine. */
 export interface EngineHandle {
@@ -44,6 +44,19 @@ function setHash(panel: PanelId | null) {
   }
 }
 
+const LIST_PANELS: PanelId[] = ['projects', 'portfolio', 'portfolio-list']
+
+/**
+ * Back target for a panel about to open: a project picked from a list returns
+ * to that list (Prev/Next between projects keeps it); anything opened from the
+ * menu or map returns there.
+ */
+function backFor(current: PanelId | null, currentBack: PanelBack | null, next: PanelId, from?: 'menu' | 'map'): PanelBack | null {
+  if (next === 'project-detail' && current && LIST_PANELS.includes(current)) return { kind: 'panel', panel: current, back: currentBack }
+  if (next === 'project-detail' && current === 'project-detail') return currentBack
+  return from ? { kind: from } : null
+}
+
 /**
  * Boat controls are live only when no overlay (panel, map, menu) covers the
  * world. Derive it from state instead of toggling per action, so an overlay
@@ -76,10 +89,14 @@ export const actions = {
     actions.openPanel(id)
   },
 
-  /** Open content directly (menu, deep link, fallback, buoy detail). */
-  openPanel(panel: PanelId, projectIndex?: number) {
+  /**
+   * Open content directly (menu, deep link, fallback, buoy detail).
+   * `from` names the overlay that opened it so the panel can offer Back.
+   */
+  openPanel(panel: PanelId, projectIndex?: number, from?: 'menu' | 'map') {
     harborStore.set((s) => ({
       activePanel: panel,
+      panelBack: backFor(s.activePanel, s.panelBack, panel, from),
       projectIndex: projectIndex ?? s.projectIndex,
       phase: s.phase === 'project' && panel === 'project-detail' ? 'project' : 'panel',
       menuOpen: false,
@@ -89,11 +106,25 @@ export const actions = {
     setHash(panel)
   },
 
+  /** Back button: return to the list, menu or map the panel was opened from. */
+  back() {
+    const b = harborStore.get().panelBack
+    if (!b) return actions.closePanel()
+    if (b.kind === 'panel') {
+      harborStore.set({ activePanel: b.panel, panelBack: b.back, phase: 'panel' })
+      setHash(b.panel)
+      return
+    }
+    actions.closePanel()
+    if (b.kind === 'menu') actions.toggleMenu(true)
+    else actions.toggleMap(true)
+  },
+
   closePanel(fromHistory = false) {
     const s = harborStore.get()
     if (!s.activePanel) return
     const inProject = s.activePanel === 'project-detail' && s.phase === 'project'
-    harborStore.set({ activePanel: null, phase: inProject ? 'project' : 'explore' })
+    harborStore.set({ activePanel: null, panelBack: null, phase: inProject ? 'project' : 'explore' })
     if (pushedHistory && !fromHistory) {
       pushedHistory = false
       history.back()

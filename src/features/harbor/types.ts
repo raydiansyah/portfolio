@@ -35,6 +35,12 @@ export type Phase = 'loading' | 'intro' | 'explore' | 'docking' | 'panel' | 'pro
 
 export type PanelId = DestinationId | 'project-detail' | 'portfolio-list'
 
+/** Where the panel's Back button returns to (null = no Back, only Close). */
+export type PanelBack =
+  | { kind: 'menu' }
+  | { kind: 'map' }
+  | { kind: 'panel'; panel: PanelId; back: PanelBack | null }
+
 export type InputDevice = 'keyboard' | 'mouse' | 'touch'
 
 export type QualityTier = 'high' | 'medium' | 'low'
