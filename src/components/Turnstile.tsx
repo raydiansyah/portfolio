@@ -1,6 +1,10 @@
 import { useEffect, useLayoutEffect, useRef } from 'react'
 
-/** Cloudflare Turnstile widget. Supabase Auth rejects sign-ins without a token when CAPTCHA protection is on. */
+/**
+ * Cloudflare Turnstile widget (shared by admin login and the public contact form).
+ * Tokens are verified server-side: by Supabase Auth for sign-in (`admin-login`)
+ * and by the `contact-submit` Edge Function for messages (`contact`).
+ */
 
 interface TurnstileApi {
   render(el: HTMLElement, opts: Record<string, unknown>): string
@@ -34,6 +38,8 @@ function loadScript() {
 }
 
 interface Props {
+  /** Turnstile action name; the server checks it matches. */
+  action: string
   onToken: (token: string) => void
   /** Turnstile error code, e.g. '110200' = hostname not allowed for this site key. */
   onError: (code?: string) => void
@@ -42,7 +48,7 @@ interface Props {
   theme: 'light' | 'dark'
 }
 
-export function Turnstile({ onToken, onError, resetKey, theme }: Props) {
+export function Turnstile({ action, onToken, onError, resetKey, theme }: Props) {
   const host = useRef<HTMLDivElement>(null)
   const widget = useRef<string | null>(null)
   // Latest callbacks without re-rendering the widget when parents pass new functions.
@@ -58,7 +64,7 @@ export function Turnstile({ onToken, onError, resetKey, theme }: Props) {
         if (cancelled || !host.current || !window.turnstile) return
         widget.current = window.turnstile.render(host.current, {
           sitekey: import.meta.env.VITE_TURNSTILE_SITE_KEY,
-          action: 'admin-login',
+          action,
           theme,
           callback: (t: string) => cb.current.onToken(t),
           'expired-callback': () => cb.current.onToken(''),
@@ -74,7 +80,7 @@ export function Turnstile({ onToken, onError, resetKey, theme }: Props) {
       if (widget.current && window.turnstile) window.turnstile.remove(widget.current)
       widget.current = null
     }
-  }, [theme])
+  }, [theme, action])
 
   useEffect(() => {
     if (resetKey > 0 && widget.current && window.turnstile) window.turnstile.reset(widget.current)

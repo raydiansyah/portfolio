@@ -1,10 +1,11 @@
 import { isConfigured, supabase } from '@/lib/supabase'
-import type { Portfolio, Profile, Service, Skill } from '@/types/supabase'
-import { ABOUT, FEATURED_PROJECTS, PROFILE, PROJECTS, SERVICES, type Project, type Service as SiteService } from './content'
+import type { Experience, Portfolio, Profile, Service, Skill } from '@/types/supabase'
+import { ABOUT, EXPERIENCE, FEATURED_PROJECTS, PROFILE, PROJECTS, SERVICES, type Project, type Service as SiteService } from './content'
 
 /**
  * Live content for the public harbor, read from Supabase with the publishable
- * key (public-read RLS: published portfolios, active services, skills, profiles).
+ * key (public-read RLS: published portfolios, active services, skills, profiles,
+ * published experiences).
  *
  * The static objects in content.ts are the fallback and are updated IN PLACE so
  * every panel, label and the 3D boards keep importing the same references.
@@ -49,21 +50,24 @@ function replace<T>(target: T[], next: T[]) {
 
 async function fetchAll() {
   const sb = supabase()
-  const [portfolios, services, skills, profiles] = await Promise.all([
+  const [portfolios, services, skills, profiles, experiences] = await Promise.all([
     sb.from('portfolios').select('*').eq('status', 'published').order('order_index'),
     sb.from('services').select('*').eq('is_active', true).order('order_index'),
     sb.from('skills').select('name, level').order('order_index'),
     sb.from('profiles').select('*').order('updated_at', { ascending: false }).limit(1),
+    sb.from('experiences').select('*').eq('is_published', true)
+      .order('end_year', { ascending: false, nullsFirst: true }).order('start_year', { ascending: false }).order('order_index'),
   ])
   return {
     portfolios: (portfolios.data ?? []) as Portfolio[],
     services: (services.data ?? []) as Service[],
     skills: (skills.data ?? []) as Pick<Skill, 'name' | 'level'>[],
     profile: ((profiles.data ?? [])[0] ?? null) as Profile | null,
+    experiences: (experiences.data ?? []) as Experience[],
   }
 }
 
-function apply({ portfolios, services, skills, profile }: Awaited<ReturnType<typeof fetchAll>>) {
+function apply({ portfolios, services, skills, profile, experiences }: Awaited<ReturnType<typeof fetchAll>>) {
   // Need enough projects for the island's four buoys; otherwise keep the static set.
   if (portfolios.length >= FEATURED_COUNT) {
     const projects = portfolios.map(toProject)
@@ -80,6 +84,17 @@ function apply({ portfolios, services, skills, profile }: Awaited<ReturnType<typ
   }
 
   if (skills.length) replace(ABOUT.stack, skills.map((s) => s.name))
+
+  if (experiences.length) {
+    replace(EXPERIENCE, experiences.map((x) => ({
+      role: x.role,
+      org: x.organization,
+      period: `${x.start_year} — ${x.end_year ?? 'Now'}`,
+      location: x.location ?? '',
+      summary: x.summary ?? '',
+      stack: x.stack,
+    })))
+  }
 
   if (profile) {
     if (profile.full_name) PROFILE.name = profile.full_name

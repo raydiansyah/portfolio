@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { ArrowUpRight, Check, Copy } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { PROFILE } from '../../data/content'
+import { ContactForm } from './ContactForm'
 import { PanelHeading } from './PanelHeading'
 
 type CopyState = 'idle' | 'copied' | 'failed'
@@ -35,8 +36,15 @@ export function ContactPanel() {
       <PanelHeading
         eyebrow={`Contact — ${PROFILE.available ? 'Available for new work' : 'Currently booked'}`}
         title="Send a message ashore"
-        description="Projects, training sessions or a second opinion on your stack. I usually reply within two working days."
+        description="Projects, training sessions or a second opinion on your stack. Write below or email me directly — replies come by email."
       />
+
+      <section data-stagger aria-labelledby="contact-form" className="flex flex-col gap-4 border-t pt-8">
+        <h3 id="contact-form" className="hud-label text-muted-foreground">
+          Message
+        </h3>
+        <ContactForm />
+      </section>
 
       <section data-stagger aria-labelledby="contact-email" className="flex flex-col gap-4 border-t pt-8">
         <h3 id="contact-email" className="hud-label text-muted-foreground">

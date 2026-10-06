@@ -41,6 +41,51 @@ export type Database = {
         }
         Relationships: []
       }
+      experiences: {
+        Row: {
+          created_at: string
+          end_year: number | null
+          id: string
+          is_published: boolean
+          location: string | null
+          order_index: number
+          organization: string
+          role: string
+          stack: string[]
+          start_year: number
+          summary: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          end_year?: number | null
+          id?: string
+          is_published?: boolean
+          location?: string | null
+          order_index?: number
+          organization: string
+          role: string
+          stack?: string[]
+          start_year: number
+          summary?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          end_year?: number | null
+          id?: string
+          is_published?: boolean
+          location?: string | null
+          order_index?: number
+          organization?: string
+          role?: string
+          stack?: string[]
+          start_year?: number
+          summary?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       inboxes: {
         Row: {
           body: string
@@ -832,6 +877,16 @@ export type Database = {
       set_slide_access_code: {
         Args: { p_code: string; p_slide_id: string }
         Returns: undefined
+      }
+      submit_contact_as_service: {
+        Args: {
+          p_body: string
+          p_email: string
+          p_ip: string
+          p_name: string
+          p_subject: string
+        }
+        Returns: string
       }
       verify_slide_access: {
         Args: { p_code: string; p_slug: string }

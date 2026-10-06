@@ -93,6 +93,22 @@ export interface Service {
   updated_at: Timestamp
 }
 
+/** experiences — work & teaching history shown in the harbor's Experience panel. */
+export interface Experience {
+  id: UUID
+  role: string
+  organization: string
+  start_year: number
+  end_year: number | null // null = present
+  location: string | null
+  summary: string | null
+  stack: string[]
+  order_index: number
+  is_published: boolean
+  created_at: Timestamp
+  updated_at: Timestamp
+}
+
 /** inboxes — contact form submissions (insert-only for anon via RLS). */
 export interface Inbox {
   id: UUID

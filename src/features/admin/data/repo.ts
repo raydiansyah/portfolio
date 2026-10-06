@@ -1,5 +1,5 @@
 import { omit, supabase, unwrap } from '@/lib/supabase'
-import type { Inbox, Portfolio, Profile, Service, Settings, Skill } from '@/types/supabase'
+import type { Experience, Inbox, Portfolio, Profile, Service, Settings, Skill } from '@/types/supabase'
 
 /**
  * Content repositories for the admin dashboard, backed by Supabase.
@@ -107,6 +107,30 @@ export async function updateSkill(id: string, patch: Partial<Skill>): Promise<Sk
 
 export async function deleteSkill(id: string) {
   unwrap(await sb().from('skills').delete().eq('id', id))
+}
+
+/* ------------------------------------------------------------ experiences */
+
+/** Newest first: current roles (no end year) on top, then by start year. */
+export async function listExperiences(): Promise<Experience[]> {
+  return unwrap(
+    await sb().from('experiences').select('*')
+      .order('end_year', { ascending: false, nullsFirst: true })
+      .order('start_year', { ascending: false })
+      .order('order_index'),
+  )
+}
+
+export async function createExperience(row: Omit<Experience, 'id' | 'created_at' | 'updated_at'>): Promise<Experience> {
+  return unwrap(await sb().from('experiences').insert(row).select().single())
+}
+
+export async function updateExperience(id: string, patch: Partial<Experience>): Promise<Experience> {
+  return unwrap(await sb().from('experiences').update(omit(patch, 'id', 'created_at', 'updated_at')).eq('id', id).select().single())
+}
+
+export async function deleteExperience(id: string) {
+  unwrap(await sb().from('experiences').delete().eq('id', id))
 }
 
 /* ---------------------------------------------------------------- inboxes */

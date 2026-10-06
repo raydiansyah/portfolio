@@ -9,3 +9,7 @@ verify_jwt = false
 # Admin-only: the platform verifies the JWT; the function checks the admin role.
 [functions.inbox-reply]
 verify_jwt = true
+
+# Public contact form: Turnstile + rate limiting happen inside the function.
+[functions.contact-submit]
+verify_jwt = false

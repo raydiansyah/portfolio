@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { isConfigured, signIn, type SignInResult } from './auth'
-import { turnstileEnabled } from './captcha'
-import { Turnstile } from './Turnstile'
+import { Turnstile } from '@/components/Turnstile'
+import { turnstileEnabled } from '@/lib/captcha'
 
 const ERRORS: Record<Exclude<SignInResult, { ok: true }>['reason'], string> = {
   credentials: 'Email or password is incorrect.',
@@ -99,6 +99,7 @@ export function LoginPage() {
 
             {needsCaptcha && (
               <Turnstile
+                action="admin-login"
                 theme={theme}
                 resetKey={captchaReset}
                 onToken={setCaptcha}

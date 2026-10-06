@@ -16,6 +16,7 @@ const Profile = lazy(() => import('./modules/profile/ProfileModule'))
 const Settings = lazy(() => import('./modules/settings/SettingsModule'))
 const Portfolio = lazy(() => import('./modules/portfolio/PortfolioModule'))
 const Services = lazy(() => import('./modules/services/ServicesModule'))
+const Experience = lazy(() => import('./modules/experience/ExperienceModule'))
 const Inbox = lazy(() => import('./modules/inbox/InboxModule'))
 const Skills = lazy(() => import('./modules/skills/SkillsModule'))
 const Site = lazy(() => import('./modules/site/SiteModule'))
@@ -43,6 +44,7 @@ export default function AdminApp({ session }: { session: Session }) {
                   <Route path="/profile" component={Profile} />
                   <Route path="/settings" component={Settings} />
                   <Route path="/portfolio" component={Portfolio} />
+                  <Route path="/experience" component={Experience} />
                   <Route path="/services" component={Services} />
                   <Route path="/inbox" component={Inbox} />
                   <Route path="/skills" component={Skills} />

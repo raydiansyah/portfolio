@@ -1,5 +1,5 @@
 import {
-  Briefcase, Cog, Gauge, Globe2, Inbox, LayoutTemplate, Library, Presentation, Sparkles, UserRound, type LucideIcon,
+  Briefcase, BriefcaseBusiness, Cog, Gauge, Globe2, Inbox, LayoutTemplate, Library, Presentation, Sparkles, UserRound, type LucideIcon,
 } from 'lucide-react'
 
 export interface NavItem {
@@ -13,6 +13,7 @@ export interface NavItem {
 export const NAV: NavItem[] = [
   { path: '/dashboard', label: 'Dashboard', icon: Gauge, group: 'Overview' },
   { path: '/portfolio', label: 'Portofolio', icon: Briefcase, group: 'Content' },
+  { path: '/experience', label: 'Experience', icon: BriefcaseBusiness, group: 'Content' },
   { path: '/services', label: 'Layanan', icon: LayoutTemplate, group: 'Content' },
   { path: '/skills', label: 'Skills', icon: Sparkles, group: 'Content' },
   { path: '/modules', label: 'Modules', icon: Library, group: 'Content' },
