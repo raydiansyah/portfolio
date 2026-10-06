@@ -109,12 +109,19 @@ export interface Experience {
   updated_at: Timestamp
 }
 
-/** inboxes — contact form submissions (insert-only for anon via RLS). */
+/**
+ * Inbox — dashboard view of a `pesan_kontak` row (mapped in data/repo.ts).
+ * Written by the `contact-submit` Edge Function and by raydiansyah.com.
+ */
 export interface Inbox {
   id: UUID
   sender_name: string
   sender_email: string
+  /** Display subject: the requested service, or "General inquiry". */
   subject: string
+  phone: string | null
+  service: string | null
+  budget: string
   body: string
   status: InboxStatus
   is_important: boolean
@@ -242,7 +249,6 @@ export interface Database {
       settings: TableDef<Settings, Insert<Settings, 'id' | 'updated_at'>>
       portfolios: TableDef<Portfolio, Insert<Portfolio, Generated | 'view_count' | 'published_at'>>
       services: TableDef<Service, Insert<Service, Generated>>
-      inboxes: TableDef<Inbox, Insert<Inbox, 'id' | 'created_at' | 'status' | 'is_important' | 'replied_at'>>
       skills: TableDef<Skill, Insert<Skill, Generated>>
       slide_access_logs: TableDef<SlideAccessLog, Insert<SlideAccessLog, 'id' | 'accessed_at'>>
     }

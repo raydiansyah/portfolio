@@ -86,42 +86,6 @@ export type Database = {
         }
         Relationships: []
       }
-      inboxes: {
-        Row: {
-          body: string
-          created_at: string
-          id: string
-          is_important: boolean
-          replied_at: string | null
-          sender_email: string
-          sender_name: string
-          status: Database["public"]["Enums"]["inbox_status"]
-          subject: string
-        }
-        Insert: {
-          body: string
-          created_at?: string
-          id?: string
-          is_important?: boolean
-          replied_at?: string | null
-          sender_email: string
-          sender_name: string
-          status?: Database["public"]["Enums"]["inbox_status"]
-          subject: string
-        }
-        Update: {
-          body?: string
-          created_at?: string
-          id?: string
-          is_important?: boolean
-          replied_at?: string | null
-          sender_email?: string
-          sender_name?: string
-          status?: Database["public"]["Enums"]["inbox_status"]
-          subject?: string
-        }
-        Relationships: []
-      }
       keahlian: {
         Row: {
           dibuat_pada: string
@@ -262,6 +226,8 @@ export type Database = {
       }
       pesan_kontak: {
         Row: {
+          dibalas_pada: string | null
+          penting: boolean
           dibuat_pada: string
           email: string
           id: string
@@ -273,6 +239,8 @@ export type Database = {
           telepon: string | null
         }
         Insert: {
+          dibalas_pada?: string | null
+          penting?: boolean
           dibuat_pada?: string
           email: string
           id?: string
@@ -284,6 +252,8 @@ export type Database = {
           telepon?: string | null
         }
         Update: {
+          dibalas_pada?: string | null
+          penting?: boolean
           dibuat_pada?: string
           email?: string
           id?: string
@@ -791,10 +761,12 @@ export type Database = {
       submit_contact_as_service: {
         Args: {
           p_body: string
+          p_budget: string
           p_email: string
           p_ip: string
           p_name: string
-          p_subject: string
+          p_phone: string
+          p_service: string
         }
         Returns: string
       }

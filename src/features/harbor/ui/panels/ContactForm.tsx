@@ -6,14 +6,17 @@ import { Textarea } from '@/components/ui/textarea'
 import { Turnstile } from '@/components/Turnstile'
 import { turnstileEnabled } from '@/lib/captcha'
 import { useTheme } from '@/lib/theme'
+import { SERVICES } from '../../data/content'
 
 /**
  * Contact form → `contact-submit` Edge Function (Turnstile verified server-side,
- * rate limited per IP, saved to `inboxes`). Plain fetch keeps supabase-js out of
+ * rate limited per IP, saved to `pesan_kontak`). Plain fetch keeps supabase-js out of
  * the harbor's main bundle.
  */
 
-type Field = 'name' | 'email' | 'subject' | 'message'
+type Field = 'name' | 'email' | 'phone' | 'service' | 'budget' | 'message'
+const EMPTY: Record<Field, string> = { name: '', email: '', phone: '', service: '', budget: '', message: '' }
+const PHONE_RE = /^[+()\d\s.-]{6,40}$/
 type Status = { kind: 'idle' } | { kind: 'sending' } | { kind: 'sent' } | { kind: 'error'; message: string }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
@@ -27,7 +30,7 @@ function validate(v: Record<Field, string>) {
   const e: Partial<Record<Field, string>> = {}
   if (!v.name.trim()) e.name = 'Your name is required.'
   if (!EMAIL_RE.test(v.email.trim())) e.email = 'Enter a valid email address.'
-  if (!v.subject.trim()) e.subject = 'Add a short subject.'
+  if (v.phone.trim() && !PHONE_RE.test(v.phone.trim())) e.phone = 'Use digits, spaces, + or dashes.'
   if (v.message.trim().length < 10) e.message = 'Tell me a little more (at least 10 characters).'
   return e
 }
@@ -51,7 +54,7 @@ export function ContactForm() {
   const uid = useId()
   const { theme } = useTheme()
   const needsCaptcha = turnstileEnabled()
-  const [values, setValues] = useState<Record<Field, string>>({ name: '', email: '', subject: '', message: '' })
+  const [values, setValues] = useState<Record<Field, string>>(EMPTY)
   const [website, setWebsite] = useState('') // honeypot
   const [errors, setErrors] = useState<Partial<Record<Field, string>>>({})
   const [token, setToken] = useState('')
@@ -99,7 +102,7 @@ export function ContactForm() {
         <p className="text-lg font-semibold">Message sent — thank you.</p>
         <p className="text-sm text-muted-foreground">I'll reply to {values.email}.</p>
         <Button variant="outline" onClick={() => {
-          setValues({ name: '', email: '', subject: '', message: '' })
+          setValues(EMPTY)
           setToken('')
           setStatus({ kind: 'idle' })
         }}>
@@ -126,10 +129,29 @@ export function ContactForm() {
           {err('email')}
         </div>
       </div>
+      <div className="grid gap-5 sm:grid-cols-2">
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor={id('phone')} className="hud-label text-muted-foreground">Phone / WhatsApp <span className="normal-case">(optional)</span></label>
+          <Input {...a11y('phone')} type="tel" inputMode="tel" autoComplete="tel" maxLength={40} value={values.phone} onChange={(e) => set('phone', e.target.value)} className="h-11" />
+          {err('phone')}
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor={id('service')} className="hud-label text-muted-foreground">Service</label>
+          <select
+            id={id('service')}
+            value={values.service}
+            onChange={(e) => set('service', e.target.value)}
+            className="h-11 w-full rounded-md border border-input bg-transparent px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
+          >
+            <option value="">Not sure yet</option>
+            {SERVICES.map((s) => <option key={s.title} value={s.title}>{s.title}</option>)}
+            <option value="Other">Something else</option>
+          </select>
+        </div>
+      </div>
       <div className="flex flex-col gap-1.5">
-        <label htmlFor={id('subject')} className="hud-label text-muted-foreground">Subject</label>
-        <Input {...a11y('subject')} maxLength={200} value={values.subject} onChange={(e) => set('subject', e.target.value)} className="h-11" />
-        {err('subject')}
+        <label htmlFor={id('budget')} className="hud-label text-muted-foreground">Budget range <span className="normal-case">(optional)</span></label>
+        <Input {...a11y('budget')} maxLength={80} placeholder="e.g. Rp 10–20 jt" value={values.budget} onChange={(e) => set('budget', e.target.value)} className="h-11" />
       </div>
       <div className="flex flex-col gap-1.5">
         <label htmlFor={id('message')} className="hud-label text-muted-foreground">Message</label>

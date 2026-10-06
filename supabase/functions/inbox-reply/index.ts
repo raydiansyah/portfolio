@@ -41,7 +41,7 @@ Deno.serve(async (req) => {
     return json({ error: 'bad-request' }, 400)
   }
 
-  const { data: inbox, error } = await admin.from('inboxes').select('*').eq('id', inboxId).maybeSingle()
+  const { data: inbox, error } = await admin.from('pesan_kontak').select('*').eq('id', inboxId).maybeSingle()
   if (error) return json({ error: 'server-error' }, 500)
   if (!inbox) return json({ error: 'not-found' }, 404)
 
@@ -50,9 +50,9 @@ Deno.serve(async (req) => {
     headers: { Authorization: `Bearer ${Deno.env.get('RESEND_API_KEY') ?? ''}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       from: Deno.env.get('NOTIFICATION_EMAIL_FROM'),
-      to: [inbox.sender_email],
+      to: [inbox.email],
       reply_to: auth.user.email ?? undefined,
-      subject: inbox.subject.startsWith('Re:') ? inbox.subject : `Re: ${inbox.subject}`,
+      subject: `Re: ${inbox.jenis_layanan || 'Your message'}`,
       text: message,
       html: `<div style="font-family:system-ui,sans-serif;white-space:pre-wrap">${escapeHtml(message)}</div>`,
     }),
@@ -63,8 +63,8 @@ Deno.serve(async (req) => {
   }
 
   const { data: updated, error: upErr } = await admin
-    .from('inboxes')
-    .update({ replied_at: new Date().toISOString(), status: 'read' })
+    .from('pesan_kontak')
+    .update({ dibalas_pada: new Date().toISOString(), status: 'ditindaklanjuti' })
     .eq('id', inboxId)
     .select()
     .single()

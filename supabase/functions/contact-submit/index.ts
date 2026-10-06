@@ -1,12 +1,12 @@
 /**
  * contact-submit — public contact form for the harbor's Contact panel.
  *
- * POST { name, email, subject, message, token, website? }
+ * POST { name, email, phone?, service?, budget?, message, token, website? }
  *   200 { ok: true } · 400 invalid · 403 captcha failed · 429 rate-limited · 500 server error
  *
  * Order of checks: honeypot → field validation → Cloudflare Turnstile (secret,
  * action "contact", allowed hostname) → per-IP rate limit + insert via the
- * service-role-only RPC. A notification email is sent best-effort; the message
+ * service-role-only RPC (saved to `pesan_kontak`). A notification email is sent best-effort; the message
  * is already saved even if email delivery fails.
  */
 import { createClient } from 'npm:@supabase/supabase-js@2'
@@ -43,7 +43,7 @@ async function verifyTurnstile(token: string, ip: string) {
   }
 }
 
-async function notify(name: string, email: string, subject: string, message: string) {
+async function notify(name: string, email: string, subject: string, details: string, message: string) {
   const key = Deno.env.get('RESEND_API_KEY')
   const from = Deno.env.get('NOTIFICATION_EMAIL_FROM')
   const to = Deno.env.get('NOTIFICATION_EMAIL_TO')
@@ -56,8 +56,8 @@ async function notify(name: string, email: string, subject: string, message: str
       body: JSON.stringify({
         from, to: [to], reply_to: email,
         subject: `[Harbor] ${subject}`,
-        text: `${name} <${email}>\n\n${message}`,
-        html: `<p><strong>${escapeHtml(name)}</strong> &lt;${escapeHtml(email)}&gt;</p><div style="white-space:pre-wrap">${escapeHtml(message)}</div>`,
+        text: `${name} <${email}>\n${details}\n\n${message}`,
+        html: `<p><strong>${escapeHtml(name)}</strong> &lt;${escapeHtml(email)}&gt;</p><p style="white-space:pre-wrap">${escapeHtml(details)}</p><div style="white-space:pre-wrap">${escapeHtml(message)}</div>`,
       }),
     })
   } catch (e) {
@@ -81,10 +81,16 @@ Deno.serve(async (req) => {
   const str = (k: string) => (typeof body[k] === 'string' ? (body[k] as string).trim() : '')
   const name = str('name')
   const email = str('email')
-  const subject = str('subject')
+  const phone = str('phone')
+  const service = str('service')
+  const budget = str('budget')
   const message = str('message')
   const token = str('token')
-  if (!name || name.length > 120 || !EMAIL_RE.test(email) || email.length > 254 || !subject || subject.length > 200 || message.length < 10 || message.length > 5000) {
+  if (
+    !name || name.length > 120 || !EMAIL_RE.test(email) || email.length > 254 ||
+    phone.length > 40 || (phone && !/^[+()\d\s.-]{6,40}$/.test(phone)) ||
+    service.length > 120 || budget.length > 80 || message.length < 10 || message.length > 5000
+  ) {
     return json({ error: 'invalid' }, 400)
   }
 
@@ -92,13 +98,14 @@ Deno.serve(async (req) => {
   if (!(await verifyTurnstile(token, ip))) return json({ error: 'captcha' }, 403)
 
   const sb = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, { auth: { persistSession: false } })
-  const { data, error } = await sb.rpc('submit_contact_as_service', { p_name: name, p_email: email, p_subject: subject, p_body: message, p_ip: ip })
+  const { data, error } = await sb.rpc('submit_contact_as_service', { p_name: name, p_email: email, p_phone: phone, p_service: service, p_budget: budget, p_body: message, p_ip: ip })
   if (error) {
     console.error('insert failed', error.message)
     return json({ error: 'server-error' }, 500)
   }
   if (data === 'rate-limited') return json({ error: 'rate-limited' }, 429)
 
-  await notify(name, email, subject, message)
+  const details = [`Layanan: ${service || '—'}`, `Anggaran: ${budget || 'Belum ditentukan'}`, phone && `Telepon: ${phone}`].filter(Boolean).join('\n')
+  await notify(name, email, service || 'Pesan baru', details, message)
   return json({ ok: true })
 })

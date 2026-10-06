@@ -78,7 +78,18 @@ export function MessageDetail({ message: m, onBack, onToggleRead, onToggleImport
               <a href={`mailto:${m.sender_email}`} className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline focus-visible:outline-2 focus-visible:outline-ring">
                 {m.sender_email}
               </a>
+              {m.phone && (
+                <a href={`tel:${m.phone}`} className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline focus-visible:outline-2 focus-visible:outline-ring">
+                  {m.phone}
+                </a>
+              )}
             </div>
+            <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
+              <dt className="text-muted-foreground">Layanan</dt>
+              <dd>{m.service ?? '—'}</dd>
+              <dt className="text-muted-foreground">Anggaran</dt>
+              <dd>{m.budget}</dd>
+            </dl>
             <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
               <time dateTime={m.created_at} title={relativeTime(m.created_at)}>{fullDate(m.created_at)}</time>
               {archived && <Badge variant="outline">Arsip</Badge>}

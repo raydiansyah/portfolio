@@ -1,4 +1,5 @@
 import { omit, supabase, unwrap } from '@/lib/supabase'
+import type { Database } from '@/types/database.gen'
 import type { Experience, Inbox, Portfolio, Profile, Service, Settings, Skill } from '@/types/supabase'
 
 /**
@@ -135,23 +136,48 @@ export async function deleteExperience(id: string) {
 
 /* ---------------------------------------------------------------- inboxes */
 
+type ContactRow = Database['public']['Tables']['pesan_kontak']['Row']
+type ContactUpdate = Database['public']['Tables']['pesan_kontak']['Update']
+
+// pesan_kontak.status: baru | dibaca | ditindaklanjuti | arsip
+const TO_STATUS: Record<string, Inbox['status']> = { baru: 'unread', dibaca: 'read', ditindaklanjuti: 'read', arsip: 'archived' }
+const FROM_STATUS: Record<Inbox['status'], string> = { unread: 'baru', read: 'dibaca', archived: 'arsip' }
+
+export function toInbox(r: ContactRow): Inbox {
+  return {
+    id: r.id,
+    sender_name: r.nama,
+    sender_email: r.email,
+    subject: r.jenis_layanan || 'General inquiry',
+    phone: r.telepon,
+    service: r.jenis_layanan,
+    budget: r.perkiraan_anggaran,
+    body: r.pesan,
+    status: TO_STATUS[r.status] ?? 'unread',
+    is_important: r.penting,
+    replied_at: r.dibalas_pada,
+    created_at: r.dibuat_pada,
+  }
+}
+
 export async function listInbox(): Promise<Inbox[]> {
-  return unwrap(await sb().from('inboxes').select('*').order('created_at', { ascending: false }))
+  const rows = unwrap<ContactRow[]>(await sb().from('pesan_kontak').select('*').order('dibuat_pada', { ascending: false }))
+  return rows.map(toInbox)
 }
-
 export async function updateInbox(id: string, patch: Partial<Inbox>): Promise<Inbox> {
-  return unwrap(await sb().from('inboxes').update(omit(patch, 'id', 'created_at') as never).eq('id', id).select().single())
+  const row: ContactUpdate = {}
+  if (patch.status !== undefined) row.status = FROM_STATUS[patch.status]
+  if (patch.is_important !== undefined) row.penting = patch.is_important
+  return toInbox(unwrap(await sb().from('pesan_kontak').update(row).eq('id', id).select().single()))
 }
-
 export async function deleteInbox(id: string) {
-  unwrap(await sb().from('inboxes').delete().eq('id', id))
+  unwrap(await sb().from('pesan_kontak').delete().eq('id', id))
 }
-
-/** Sends the reply email via the admin-only `inbox-reply` Edge Function (Resend), which also stamps replied_at. */
+/** Sends the reply email via the admin-only `inbox-reply` Edge Function (Resend); marks the message followed up. */
 export async function replyInbox(id: string, message: string): Promise<Inbox> {
-  const { data, error } = await sb().functions.invoke<{ inbox: Inbox }>('inbox-reply', { body: { inbox_id: id, message } })
+  const { data, error } = await sb().functions.invoke<{ inbox: ContactRow }>('inbox-reply', { body: { inbox_id: id, message } })
   if (error || !data) throw new Error(error?.message ?? 'Reply failed')
-  return data.inbox
+  return toInbox(data.inbox)
 }
 
 /* ---------------------------------------------------------------- summary */
@@ -179,8 +205,8 @@ export async function getStats(slidesActive: number, accessLogs: number): Promis
     count(sb().from('portfolios').select('*', head)),
     count(sb().from('services').select('*', head)),
     count(sb().from('skills').select('*', head)),
-    count(sb().from('inboxes').select('*', head)),
-    count(sb().from('inboxes').select('*', head).eq('status', 'unread')),
+    count(sb().from('pesan_kontak').select('*', head)),
+    count(sb().from('pesan_kontak').select('*', head).eq('status', 'baru')),
   ])
   return { portfolios, services, inboxUnread, inboxTotal, skills, slidesActive, accessLogs }
 }
