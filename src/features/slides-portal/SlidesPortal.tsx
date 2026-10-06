@@ -104,8 +104,9 @@ type State =
 
 function SlideRoute({ slug }: { slug: string }) {
   const [state, setState] = useState<State>(() => {
+    // Decks that belong to a module always go through the module flow.
     const cached = loadGrant(slug)
-    return cached ? { kind: 'viewer', grant: cached } : { kind: 'loading' }
+    return cached && !cached.slide.module_id ? { kind: 'viewer', grant: cached } : { kind: 'loading' }
   })
   const title = state.kind === 'viewer' ? state.grant.slide.title : state.kind === 'gate' || state.kind === 'error' ? state.meta.title : 'Slides'
   useNoIndex(title)
