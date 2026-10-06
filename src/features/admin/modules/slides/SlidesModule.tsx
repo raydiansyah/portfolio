@@ -3,9 +3,11 @@ import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { useLocation, useSearch } from 'wouter'
 import { Button } from '@/components/ui/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { cn } from '@/lib/utils'
 import type { Slide } from '@/types/supabase'
+import { listModules } from '../../data/modules'
 import { deleteSlide, listAccessLogs, listSlides, reorderSlides, updateSlide } from '../../data/slides'
 import { EmptyState } from '../../ui/EmptyState'
 import { PageHeader } from '../../ui/PageHeader'
@@ -29,6 +31,9 @@ export default function SlidesModule() {
   const [, navigate] = useLocation()
   const { data, error, reload, setData } = useResource(listSlides)
   const weekly = useResource(loadWeeklyViews)
+  const contentModules = useResource(listModules)
+  /** 'all' | 'none' (unassigned) | module id */
+  const [contentFilter, setContentFilter] = useState('all')
   const [moduleFilter, setModuleFilter] = useState<ModuleFilter>('all')
   const [format, setFormat] = useState<FormatFilter>('all')
   const [editing, setEditing] = useState<Slide | null>(null)
@@ -36,7 +41,9 @@ export default function SlidesModule() {
   const [share, setShare] = useState<{ slide: Slide; code: string | null } | null>(null)
 
   // `?new=1` (e.g. from the dashboard quick action) opens the create sheet.
-  const newFromUrl = new URLSearchParams(search).get('new') === '1'
+  const params = new URLSearchParams(search)
+  const newFromUrl = params.get('new') === '1'
+  const moduleFromUrl = params.get('module')
   const sheetOpen = creating || newFromUrl || editing !== null
 
   const closeSheet = () => {
@@ -48,11 +55,12 @@ export default function SlidesModule() {
   const slides = useMemo(() => data ?? [], [data])
   const byFormat = (s: Slide) => format === 'all' || s.file_type === format
   const byModule = (s: Slide) => moduleFilter === 'all' || s.module_category === moduleFilter
-  const visible = slides.filter((s) => byFormat(s) && byModule(s))
+  const byContent = (s: Slide) => contentFilter === 'all' || (contentFilter === 'none' ? !s.module_id : s.module_id === contentFilter)
+  const visible = slides.filter((s) => byFormat(s) && byModule(s) && byContent(s))
   // Faceted counts: each filter's counts respect the *other* filter.
   const moduleCount = (m: ModuleFilter) => slides.filter((s) => byFormat(s) && (m === 'all' || s.module_category === m)).length
   const formatCount = (f: FormatFilter) => slides.filter((s) => byModule(s) && (f === 'all' || s.file_type === f)).length
-  const reorderable = moduleFilter === 'all' && format === 'all'
+  const reorderable = moduleFilter === 'all' && format === 'all' && contentFilter === 'all'
   const activeCount = slides.filter((s) => s.is_active).length
 
   const patchLocal = (row: Slide) => setData((prev) => prev?.map((s) => (s.id === row.id ? row : s)) ?? prev)
@@ -120,7 +128,20 @@ export default function SlidesModule() {
       />
 
       <div className="flex flex-col gap-3">
-        <div role="group" aria-label="Filter by module" className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
+        <div className="flex items-center gap-2">
+          <label htmlFor="slides-content-module" className="hud-label shrink-0 text-muted-foreground">Content module</label>
+          <Select value={contentFilter} onValueChange={setContentFilter}>
+            <SelectTrigger id="slides-content-module" className="h-9 w-full max-w-72"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All modules ({slides.length})</SelectItem>
+              <SelectItem value="none">No module ({slides.filter((s) => !s.module_id).length})</SelectItem>
+              {(contentModules.data ?? []).map((m) => (
+                <SelectItem key={m.id} value={m.id}>{m.title} ({slides.filter((s) => s.module_id === m.id).length})</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div role="group" aria-label="Filter by category" className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
           {(['all', ...MODULES] as ModuleFilter[]).map((m) => (
             <button
               key={m}
@@ -200,10 +221,13 @@ export default function SlidesModule() {
       )}
 
       <SlideSheet
-        open={sheetOpen}
+        // With ?module=, wait for the module list so the form can preselect it on first render.
+        open={sheetOpen && (!moduleFromUrl || contentModules.data !== null)}
         slide={editing}
         takenSlugs={slides.map((s) => s.slug)}
         nextOrder={slides.length}
+        modules={contentModules.data ?? []}
+        defaultModuleId={editing ? null : moduleFromUrl}
         onOpenChange={(o) => !o && closeSheet()}
         onSaved={onSaved}
       />

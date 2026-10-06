@@ -126,7 +126,7 @@ function SlideRow({ slide, index, reorderable, onToggleActive, onShare, onEdit, 
               <GripVertical className="size-4" aria-hidden />
             </button>
           </TooltipTrigger>
-          <TooltipContent>Set both filters to “Semua” to reorder</TooltipContent>
+          <TooltipContent>Clear all filters to reorder (or reorder inside a module)</TooltipContent>
         </Tooltip>
       )}
 

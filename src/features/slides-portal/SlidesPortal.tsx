@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { getPublicSlide, verifySlideAccess } from '@/features/admin/data/slides'
 import type { PublicSlideMeta, SlideAccessGrant } from '@/types/supabase'
 import { AccessGate } from './AccessGate'
+import { ModulePage } from './ModulePage'
 import { ThemeToggle } from './ThemeToggle'
 import Viewer from './Viewer'
 
@@ -16,9 +17,12 @@ const subscribePath = (cb: () => void) => {
   window.addEventListener('popstate', cb)
   return () => window.removeEventListener('popstate', cb)
 }
-const readSlug = () => {
+/** `/slides/m/<module>` is a module page; `/slides/<slug>` is a deck. Returned as a string so useSyncExternalStore compares by value. */
+const readRoute = () => {
+  const mod = /^\/slides\/m\/([^/?#]+)/.exec(location.pathname)
+  if (mod) return `module:${decodeURIComponent(mod[1])}`
   const m = /^\/slides\/([^/?#]+)/.exec(location.pathname)
-  return m ? decodeURIComponent(m[1]) : null
+  return m ? `slide:${decodeURIComponent(m[1])}` : null
 }
 function navigate(path: string) {
   history.pushState(null, '', path)
@@ -76,8 +80,11 @@ function useNoIndex(title: string) {
 }
 
 export default function SlidesPortal() {
-  const slug = useSyncExternalStore(subscribePath, readSlug, () => null)
-  return slug ? <SlideRoute key={slug} slug={slug} /> : <EnterLink />
+  const route = useSyncExternalStore(subscribePath, readRoute, () => null)
+  if (!route) return <EnterLink />
+  const [kind, slug] = [route.slice(0, route.indexOf(':')), route.slice(route.indexOf(':') + 1)]
+  if (kind === 'module') return <ModulePage key={slug} slug={slug} onOpen={(s) => navigate(`/slides/${encodeURIComponent(s)}`)} />
+  return <SlideRoute key={slug} slug={slug} />
 }
 
 type State =

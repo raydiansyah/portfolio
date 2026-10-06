@@ -2,7 +2,7 @@
  * Supabase schema types for the admin dashboard and the public slide portal.
  *
  * 1:1 with the migrations mirrored in `supabase/schema/` (applied to the live
- * `raydiansyah` project on 2026-10-06). Shape follows `supabase gen types` so
+ * `raydiansyah` project on 2026-10-06, incl. 20261006120000 slide_modules). Shape follows `supabase gen types` so
  * `createClient<Database>()` gets typed `.from()` calls; regenerate with
  * `supabase gen types typescript --linked > src/types/supabase.ts` after the
  * migration is applied.
@@ -125,6 +125,8 @@ export interface Skill {
  */
 export interface Slide {
   id: UUID
+  /** Content module this deck belongs to (null = unassigned). */
+  module_id: UUID | null
   slug: string
   title: string
   description: string | null
@@ -147,6 +149,29 @@ export interface Slide {
 export interface SlideOutlineItem {
   title: string
   page: number
+}
+
+/**
+ * slide_modules — a course / client engagement / workshop series that groups
+ * many slides. Slides keep their own access codes; the module page lists them.
+ */
+export interface ContentModule {
+  id: UUID
+  slug: string
+  title: string
+  description: string | null
+  category: SlideModule
+  cover_url: string | null // storage: branding/modules/...
+  is_published: boolean
+  order_index: number
+  created_at: Timestamp
+  updated_at: Timestamp
+}
+
+/** Result of `rpc('get_public_module', { p_slug })`: published module + its active slides (safe fields only). */
+export interface PublicModule {
+  module: Pick<ContentModule, 'slug' | 'title' | 'description' | 'category' | 'cover_url'>
+  slides: (PublicSlideMeta & { order_index: number; page_count: number | null })[]
 }
 
 /** slide_access_logs — one row per successful access (written by the RPC, not by clients). */
@@ -188,13 +213,15 @@ export interface Database {
       services: TableDef<Service, Insert<Service, Generated>>
       inboxes: TableDef<Inbox, Insert<Inbox, 'id' | 'created_at' | 'status' | 'is_important' | 'replied_at'>>
       skills: TableDef<Skill, Insert<Skill, Generated>>
-      slides: TableDef<Slide, Insert<Slide, Generated | 'page_count' | 'outline'>>
+      slide_modules: TableDef<ContentModule, Insert<ContentModule, Generated>>
+      slides: TableDef<Slide, Insert<Slide, Generated | 'page_count' | 'outline' | 'module_id'>>
       slide_access_logs: TableDef<SlideAccessLog, Insert<SlideAccessLog, 'id' | 'accessed_at'>>
     }
     Views: Record<string, never>
     Functions: {
       verify_slide_access: { Args: { p_slug: string; p_code: string | null }; Returns: SlideAccessGrant | null }
       get_public_slide: { Args: { p_slug: string }; Returns: PublicSlideMeta | null }
+      get_public_module: { Args: { p_slug: string }; Returns: PublicModule | null }
       set_slide_access_code: { Args: { p_slide_id: UUID; p_code: string | null }; Returns: undefined }
     }
     Enums: {

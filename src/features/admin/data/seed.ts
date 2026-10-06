@@ -1,6 +1,6 @@
 import { PROFILE, PROJECTS, SERVICES, ABOUT } from '@/features/harbor/data/content'
 import type {
-  Inbox, Portfolio, Profile, Service, Settings, Skill, Slide, SlideAccessLog, SkillCategory,
+  ContentModule, Inbox, Portfolio, Profile, Service, Settings, Skill, Slide, SlideAccessLog, SkillCategory,
 } from '@/types/supabase'
 
 /** Mock seed rows. Content is borrowed from the public harbor so both sides tell the same story. */
@@ -116,25 +116,43 @@ export const SEED_INBOX: Inbox[] = [
  * Mock slides. Plain access codes live only in `MOCK_SLIDE_CODES` to imitate
  * the server-side check; the `access_code` column holds a fake hash marker.
  */
+export const SEED_MODULES: ContentModule[] = [
+  {
+    id: id('h', 1), slug: 'pemrograman-web-lanjut', title: 'Pemrograman Web Lanjut', category: 'materi_kuliah',
+    description: 'Materi kuliah semester ganjil: React, state management, dan deployment.', cover_url: null,
+    is_published: true, order_index: 0, created_at: day(40), updated_at: day(2),
+  },
+  {
+    id: id('h', 2), slug: 'workshop-frontend-performance', title: 'Workshop Frontend Performance', category: 'workshop',
+    description: 'Seri workshop 2 hari tentang Core Web Vitals.', cover_url: null,
+    is_published: true, order_index: 1, created_at: day(30), updated_at: day(4),
+  },
+  {
+    id: id('h', 3), slug: 'klien-lms-sekolah', title: 'Klien: LMS Sekolah', category: 'presentasi_klien',
+    description: 'Proposal dan progress report untuk klien LMS.', cover_url: null,
+    is_published: false, order_index: 2, created_at: day(10), updated_at: day(8),
+  },
+]
+
 export const MOCK_SLIDE_CODES: Record<string, string> = { 'react-fundamentals': '482913', 'proposal-lms-sekolah': 'KLIEN-2026' }
 
 export const SEED_SLIDES: Slide[] = [
   {
-    id: id('f', 1), slug: 'react-fundamentals', title: 'React Fundamentals', description: 'Komponen, state, dan effect — pertemuan 3.',
+    id: id('f', 1), module_id: id('h', 1), slug: 'react-fundamentals', title: 'React Fundamentals', description: 'Komponen, state, dan effect — pertemuan 3.',
     presenter: PROFILE.name, file_type: 'html', file_url: '/demo-slides/react-fundamentals/index.html', page_count: 6,
     outline: [{ title: 'Pembuka', page: 1 }, { title: 'Komponen', page: 2 }, { title: 'State', page: 4 }, { title: 'Penutup', page: 6 }],
     access_code: '$2a$mock$hash', is_protected: true, module_category: 'materi_kuliah', order_index: 0, allow_download: false, is_active: true,
     created_at: day(20), updated_at: day(1),
   },
   {
-    id: id('f', 2), slug: 'workshop-web-performance', title: 'Workshop Web Performance', description: 'Core Web Vitals dan cara mengukurnya.',
+    id: id('f', 2), module_id: id('h', 2), slug: 'workshop-web-performance', title: 'Workshop Web Performance', description: 'Core Web Vitals dan cara mengukurnya.',
     presenter: PROFILE.name, file_type: 'pdf', file_url: '/demo-slides/web-performance.pdf', page_count: 5,
     outline: [{ title: 'Kenapa performa', page: 1 }, { title: 'LCP', page: 2 }, { title: 'CLS', page: 3 }, { title: 'INP', page: 4 }, { title: 'Checklist', page: 5 }],
     access_code: null, is_protected: false, module_category: 'workshop', order_index: 1, allow_download: true, is_active: true,
     created_at: day(15), updated_at: day(4),
   },
   {
-    id: id('f', 3), slug: 'proposal-lms-sekolah', title: 'Proposal LMS Sekolah', description: 'Ruang lingkup, timeline, dan biaya.',
+    id: id('f', 3), module_id: id('h', 3), slug: 'proposal-lms-sekolah', title: 'Proposal LMS Sekolah', description: 'Ruang lingkup, timeline, dan biaya.',
     presenter: PROFILE.name, file_type: 'ppt',
     // External embeds must be publicly reachable; Office Web Viewer cannot read localhost files.
     file_url: 'https://view.officeapps.live.com/op/embed.aspx?src=https%3A%2F%2Fexample.com%2Fproposal-lms.pptx',

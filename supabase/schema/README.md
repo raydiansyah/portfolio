@@ -8,5 +8,6 @@ the SQL. Applied to production on 2026-10-06:
 
 - `20261006090000_create_admin_dashboard_and_slide_portal.sql`
 - `20261006093000_scope_admin_policies_to_authenticated.sql`
+- `20261006120000_create_slide_modules.sql`
 
 Change the schema in `~/Sites/personal` and copy the new file here.

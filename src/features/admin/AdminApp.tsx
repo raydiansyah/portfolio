@@ -20,6 +20,7 @@ const Inbox = lazy(() => import('./modules/inbox/InboxModule'))
 const Skills = lazy(() => import('./modules/skills/SkillsModule'))
 const Site = lazy(() => import('./modules/site/SiteModule'))
 const Slides = lazy(() => import('./modules/slides/SlidesModule'))
+const ContentModules = lazy(() => import('./modules/content-modules/ContentModulesModule'))
 
 /** Signed-in admin shell: collapsible sidebar + header + lazily loaded module routes under /secure. */
 export default function AdminApp({ session }: { session: Session }) {
@@ -46,6 +47,7 @@ export default function AdminApp({ session }: { session: Session }) {
                   <Route path="/inbox" component={Inbox} />
                   <Route path="/skills" component={Skills} />
                   <Route path="/site" component={Site} />
+                  <Route path="/modules" component={ContentModules} />
                   <Route path="/slides" component={Slides} />
                   <Route>
                     <Redirect to="/dashboard" replace />

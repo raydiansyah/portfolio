@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
-import type { Slide, SlideFileType, SlideModule } from '@/types/supabase'
+import type { ContentModule, Slide, SlideFileType, SlideModule } from '@/types/supabase'
 import { createSlide, updateSlide, type SlideDraft } from '../../data/slides'
 import { AccessCodeField, type CodeMode } from './AccessCodeField'
 import { OutlineEditor, type OutlineRow } from './OutlineEditor'
@@ -20,6 +20,10 @@ interface Props {
   slide: Slide | null
   takenSlugs: string[]
   nextOrder: number
+  /** Content modules the slide can be filed under. */
+  modules: Pick<ContentModule, 'id' | 'title' | 'category'>[]
+  /** Preselected module for new slides (e.g. "Upload into this module"). */
+  defaultModuleId?: string | null
   onOpenChange: (open: boolean) => void
   /** `plainCode` is set only when a new code was saved, so the caller can show it once. */
   onSaved: (slide: Slide, plainCode: string | null) => void
@@ -38,7 +42,9 @@ export function SlideSheet({ open, slide, ...rest }: Props) {
 
 type Errors = Partial<Record<'title' | 'slug' | 'file' | 'embed' | 'code' | 'outline', string>>
 
-function initialState(s: Slide | null) {
+const NO_MODULE = 'none'
+
+function initialState(s: Slide | null, defaultModule: Pick<ContentModule, 'id' | 'category'> | undefined) {
   const embedded = s?.file_type === 'ppt' && isHttpsUrl(s.file_url)
   return {
     title: s?.title ?? '',
@@ -46,7 +52,8 @@ function initialState(s: Slide | null) {
     slugTouched: Boolean(s),
     description: s?.description ?? '',
     presenter: s?.presenter ?? '',
-    module: s?.module_category ?? ('materi_kuliah' as SlideModule),
+    module: s?.module_category ?? defaultModule?.category ?? ('materi_kuliah' as SlideModule),
+    moduleId: s ? (s.module_id ?? NO_MODULE) : (defaultModule?.id ?? NO_MODULE),
     fileType: s?.file_type ?? ('pdf' as SlideFileType),
     filePath: s && !embedded ? s.file_url : '',
     fileName: s && !embedded ? (s.file_url.split('/').pop() ?? s.file_url) : '',
@@ -61,8 +68,8 @@ function initialState(s: Slide | null) {
   }
 }
 
-function SlideForm({ slide, takenSlugs, nextOrder, onOpenChange, onSaved }: Omit<Props, 'open'>) {
-  const [f, setF] = useState(() => initialState(slide))
+function SlideForm({ slide, takenSlugs, nextOrder, modules, defaultModuleId, onOpenChange, onSaved }: Omit<Props, 'open'>) {
+  const [f, setF] = useState(() => initialState(slide, modules.find((m) => m.id === defaultModuleId)))
   const [errors, setErrors] = useState<Errors>({})
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -105,6 +112,7 @@ function SlideForm({ slide, takenSlugs, nextOrder, onOpenChange, onSaved }: Omit
       file_type: f.fileType,
       file_url: embed ? f.embedUrl : f.filePath,
       module_category: f.module,
+      module_id: f.moduleId === NO_MODULE ? null : f.moduleId,
       order_index: slide?.order_index ?? nextOrder,
       allow_download: f.allowDownload,
       is_active: f.isActive,
@@ -172,14 +180,32 @@ function SlideForm({ slide, takenSlugs, nextOrder, onOpenChange, onSaved }: Omit
               <Input id="slide-presenter" value={f.presenter} onChange={(e) => set('presenter', e.target.value)} autoComplete="name" />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="slide-module" className="text-sm font-medium">Module</label>
+              <label htmlFor="slide-category" className="text-sm font-medium">Category</label>
               <Select value={f.module} onValueChange={(v) => set('module', v as SlideModule)}>
-                <SelectTrigger id="slide-module" className="w-full"><SelectValue /></SelectTrigger>
+                <SelectTrigger id="slide-category" className="w-full"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {MODULES.map((m) => <SelectItem key={m} value={m}>{MODULE_LABELS[m]}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="slide-content-module" className="text-sm font-medium">Content module</label>
+            <Select
+              value={f.moduleId}
+              onValueChange={(v) => {
+                // Filing a slide under a module adopts that module's category.
+                const mod = modules.find((m) => m.id === v)
+                setF((s) => ({ ...s, moduleId: v, module: mod?.category ?? s.module }))
+              }}
+            >
+              <SelectTrigger id="slide-content-module" className="w-full"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NO_MODULE}>No module</SelectItem>
+                {modules.map((m) => <SelectItem key={m.id} value={m.id}>{m.title}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">Group decks of one course, client or workshop. Order is managed in Modules.</p>
           </div>
         </section>
 

@@ -11,7 +11,8 @@ import { MOCK_SLIDE_CODES, SEED_ACCESS_LOGS, SEED_SLIDES } from './seed'
  * short-lived signed URL for the private `slides` bucket.
  */
 
-const slides = new MockTable<Slide>('slides', SEED_SLIDES)
+// v2: rows gained `module_id`; older persisted mock rows are ignored.
+export const slides = new MockTable<Slide>('slides:v2', SEED_SLIDES)
 const logs = new MockTable<SlideAccessLog>('slide_access_logs', SEED_ACCESS_LOGS)
 const CODES_KEY = 'admin-mock:slide-codes'
 
@@ -46,8 +47,9 @@ export const listAccessLogs = (limit = 50) =>
 /** SUPABASE: sb.from('slide_access_logs').select('*', { count: 'exact', head: true }) */
 export const countAccessLogs = () => delay(logs.all().length, 80)
 
-export type SlideDraft = Omit<Slide, 'id' | 'created_at' | 'updated_at' | 'access_code' | 'page_count' | 'outline'> & {
+export type SlideDraft = Omit<Slide, 'id' | 'created_at' | 'updated_at' | 'access_code' | 'page_count' | 'outline' | 'module_id'> & {
   outline?: Slide['outline']
+  module_id?: string | null
 }
 
 /**
@@ -58,7 +60,7 @@ export type SlideDraft = Omit<Slide, 'id' | 'created_at' | 'updated_at' | 'acces
  */
 export async function createSlide(draft: SlideDraft, plainCode: string | null) {
   const row = slides.insert({
-    ...draft, outline: draft.outline ?? [], id: uuid(), page_count: null,
+    ...draft, module_id: draft.module_id ?? null, outline: draft.outline ?? [], id: uuid(), page_count: null,
     access_code: draft.is_protected && plainCode ? '$2a$mock$hash' : null, created_at: now(), updated_at: now(),
   })
   saveCode(row.slug, draft.is_protected ? plainCode : null)
