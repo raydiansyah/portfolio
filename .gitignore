@@ -45,3 +45,4 @@ supabase/.branches
 .playwright-mcp
 graphify-out
 .claude/launch.json
+.claude-flow/

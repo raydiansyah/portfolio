@@ -1,3 +1,4 @@
+import { PROJECTS } from './data/content'
 import { CAMERA_VIEWS, STORAGE_VIEW, harborStore } from './store'
 import type { CameraViewId, DestinationId, PanelId } from './types'
 
@@ -106,6 +107,8 @@ export const actions = {
 
   viewProject(index: number) {
     actions.openPanel('project-detail', index)
+    const slug = PROJECTS[index]?.id
+    if (slug) void import('./data/live').then((m) => m.trackProjectView(slug))
   },
 
   leaveProjects() {

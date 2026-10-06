@@ -13,7 +13,7 @@ export const MODULE_LABELS: Record<SlideModule, string> = {
 export const MODULES = Object.keys(MODULE_LABELS) as SlideModule[]
 
 export const FORMATS: Record<SlideFileType, { short: string; long: string; icon: LucideIcon; accept: string; maxMb: number; hint: string }> = {
-  html: { short: 'HTML', long: 'HTML Presentation', icon: FileCode2, accept: '.zip,.html', maxMb: 50, hint: 'Bundle (.zip with index.html) or a single .html' },
+  html: { short: 'HTML', long: 'HTML Presentation', icon: FileCode2, accept: '.html,.htm', maxMb: 20, hint: 'Single self-contained .html (inline CSS/JS/images)' },
   pdf: { short: 'PDF', long: 'PDF Document', icon: FileText, accept: '.pdf', maxMb: 50, hint: 'PDF up to 50 MB' },
   ppt: { short: 'PPT', long: 'PPT / PowerPoint', icon: Presentation, accept: '.pptx,.ppt', maxMb: 100, hint: '.pptx or .ppt up to 100 MB' },
 }

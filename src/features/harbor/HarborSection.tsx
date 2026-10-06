@@ -68,12 +68,21 @@ export default function HarborSection({ isDark, onToggleTheme }: Props) {
     }
   }, [webgl])
 
+  // Live content for every mode (the WebGL-less fallback renders the same panels).
+  // loadLiveContent() is memoised, so the engine effect below reuses this request.
+  useEffect(() => {
+    void import('./data/live').then((m) => m.loadLiveContent())
+  }, [])
+
   // Engine lifecycle. Loaded lazily so the HUD paints before three.js is parsed.
   useEffect(() => {
     if (!webgl || !host.current) return
     let cancelled = false
     const container = host.current
-    void import('./engine/HarborEngine').then(async ({ HarborEngine }) => {
+    // Live content (Supabase) loads in parallel with the engine chunk; the boards on
+    // Portfolio Island are drawn at engine creation, so wait for it (bounded, never throws).
+    const live = import('./data/live').then((m) => m.loadLiveContent())
+    void Promise.all([import('./engine/HarborEngine'), live]).then(async ([{ HarborEngine }]) => {
       if (cancelled) return
       const engine = await HarborEngine.create({
         container,

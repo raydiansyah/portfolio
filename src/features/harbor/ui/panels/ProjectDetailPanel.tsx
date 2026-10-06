@@ -29,10 +29,13 @@ export function ProjectDetailPanel() {
       </div>
 
       <div data-stagger className="grid gap-10 md:grid-cols-12">
+        {project.role && (
         <section aria-labelledby="pd-role" className="md:col-span-4">
           <SectionLabel id="pd-role">Role</SectionLabel>
           <p className="mt-3 leading-relaxed">{project.role}</p>
         </section>
+        )}
+        {project.highlights.length > 0 && (
         <section aria-labelledby="pd-highlights" className="md:col-span-5">
           <SectionLabel id="pd-highlights">Highlights</SectionLabel>
           <ul className="mt-3 flex flex-col">
@@ -44,6 +47,7 @@ export function ProjectDetailPanel() {
             ))}
           </ul>
         </section>
+        )}
         <section aria-labelledby="pd-stack" className="md:col-span-3">
           <SectionLabel id="pd-stack">Stack</SectionLabel>
           <ul className="mt-3 flex flex-wrap gap-1.5">

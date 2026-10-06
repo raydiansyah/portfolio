@@ -1,51 +1,32 @@
-import type { PublicSlideMeta, Slide, SlideAccessGrant, SlideAccessLog } from '@/types/supabase'
-import { MockTable, delay, now, uuid } from './table'
-import { MOCK_SLIDE_CODES, SEED_ACCESS_LOGS, SEED_SLIDES } from './seed'
+import { omit, supabase, unwrap } from '@/lib/supabase'
+import { STORAGE_BUCKETS, type PublicSlideMeta, type Slide, type SlideAccessGrant, type SlideAccessLog } from '@/types/supabase'
 
 /**
  * Slide repository shared by the admin Slide Manager and the public portal.
  *
- * Security model (see supabase/schema): the public never reads `slides`
- * directly. `get_public_slide` returns safe metadata; `verify_slide_access`
- * checks the code server-side (bcrypt), writes an access log and returns a
- * short-lived signed URL for the private `slides` bucket.
+ * Security model: the public never reads `slides` directly. `get_public_slide`
+ * returns safe metadata; the `slide-access` Edge Function checks the code
+ * (bcrypt, server-side), rate-limits per client IP, logs the access and returns
+ * a short-lived signed URL for the private `slides` bucket.
  */
 
-// v2: rows gained `module_id`; older persisted mock rows are ignored.
-export const slides = new MockTable<Slide>('slides:v2', SEED_SLIDES)
-const logs = new MockTable<SlideAccessLog>('slide_access_logs', SEED_ACCESS_LOGS)
-const CODES_KEY = 'admin-mock:slide-codes'
-
-function codes(): Record<string, string> {
-  try {
-    return { ...MOCK_SLIDE_CODES, ...JSON.parse(localStorage.getItem(CODES_KEY) ?? '{}') }
-  } catch {
-    return { ...MOCK_SLIDE_CODES }
-  }
-}
-
-function saveCode(slug: string, code: string | null) {
-  const all = codes()
-  if (code) all[slug] = code
-  else delete all[slug]
-  try {
-    localStorage.setItem(CODES_KEY, JSON.stringify(all))
-  } catch {
-    /* ignore */
-  }
-}
+const sb = () => supabase()
 
 /* ----------------------------------------------------------------- admin */
 
-/** SUPABASE: sb.from('slides').select('*').order('order_index') — admin-only via RLS (private.is_admin()) */
-export const listSlides = () => delay(slides.all().sort((a, b) => a.order_index - b.order_index))
+export async function listSlides(): Promise<Slide[]> {
+  return unwrap(await sb().from('slides').select('*').order('order_index'))
+}
 
-/** SUPABASE: sb.from('slide_access_logs').select('*').order('accessed_at', { ascending: false }).limit(n) */
-export const listAccessLogs = (limit = 50) =>
-  delay(logs.all().sort((a, b) => b.accessed_at.localeCompare(a.accessed_at)).slice(0, limit))
+export async function listAccessLogs(limit = 50): Promise<SlideAccessLog[]> {
+  return unwrap(await sb().from('slide_access_logs').select('*').order('accessed_at', { ascending: false }).limit(limit))
+}
 
-/** SUPABASE: sb.from('slide_access_logs').select('*', { count: 'exact', head: true }) */
-export const countAccessLogs = () => delay(logs.all().length, 80)
+export async function countAccessLogs(): Promise<number> {
+  const { count, error } = await sb().from('slide_access_logs').select('*', { count: 'exact', head: true })
+  if (error) throw new Error(error.message)
+  return count ?? 0
+}
 
 export type SlideDraft = Omit<Slide, 'id' | 'created_at' | 'updated_at' | 'access_code' | 'page_count' | 'outline' | 'module_id'> & {
   outline?: Slide['outline']
@@ -53,100 +34,92 @@ export type SlideDraft = Omit<Slide, 'id' | 'created_at' | 'updated_at' | 'acces
 }
 
 /**
- * Create a slide. `plainCode` is hashed server-side and never stored in plain text.
- * SUPABASE:
- *   const { data } = await sb.from('slides').insert({ ...draft, access_code: null }).select().single()
- *   if (draft.is_protected) await sb.rpc('set_slide_access_code', { p_slide_id: data.id, p_code: plainCode })
+ * Create a slide; the access code is hashed server-side by `set_slide_access_code`
+ * (never stored or returned in plain text). `is_protected` is set by that RPC so the
+ * `protected_needs_code` constraint holds during the insert.
  */
-export async function createSlide(draft: SlideDraft, plainCode: string | null) {
-  const row = slides.insert({
-    ...draft, module_id: draft.module_id ?? null, outline: draft.outline ?? [], id: uuid(), page_count: null,
-    access_code: draft.is_protected && plainCode ? '$2a$mock$hash' : null, created_at: now(), updated_at: now(),
-  })
-  saveCode(row.slug, draft.is_protected ? plainCode : null)
-  return delay(row)
-}
-
-/** SUPABASE: sb.from('slides').update(patch).eq('id', id).select().single() (+ set_slide_access_code when the code changes) */
-export async function updateSlide(id: string, patch: Partial<SlideDraft>, plainCode?: string | null) {
-  const row = slides.update(id, { ...patch, updated_at: now() })
-  if (plainCode !== undefined || patch.is_protected === false) {
-    const code = row.is_protected ? plainCode ?? null : null
-    saveCode(row.slug, code)
-    slides.update(id, { access_code: code ? '$2a$mock$hash' : null })
+export async function createSlide(draft: SlideDraft, plainCode: string | null): Promise<Slide> {
+  const row = unwrap<Slide>(
+    await sb().from('slides').insert({ ...draft, outline: draft.outline ?? [], is_protected: false } as never).select().single(),
+  )
+  if (draft.is_protected && plainCode) {
+    unwrap(await sb().rpc('set_slide_access_code', { p_slide_id: row.id, p_code: plainCode }))
+    return unwrap(await sb().from('slides').select('*').eq('id', row.id).single())
   }
-  return delay(slides.get(id)!)
+  return row
 }
 
-/** SUPABASE: sb.from('slides').delete().eq('id', id); sb.storage.from('slides').remove([row.file_url]) */
-export const deleteSlide = (id: string) => delay(slides.remove(id))
-
 /**
- * Persist a new order after drag-and-drop.
- * SUPABASE: sb.from('slides').upsert(ids.map((id, order_index) => ({ id, order_index })), { onConflict: 'id' })
+ * Update a slide. `plainCode`: undefined = keep the current code, string = set a new one.
+ * Turning protection off clears the code; turning it on requires a code.
  */
+export async function updateSlide(id: string, patch: Partial<SlideDraft>, plainCode?: string | null): Promise<Slide> {
+  const fields = omit(patch, 'is_protected')
+  if (Object.keys(fields).length) unwrap(await sb().from('slides').update(fields as never).eq('id', id))
+  if (patch.is_protected === false) unwrap(await sb().rpc('set_slide_access_code', { p_slide_id: id, p_code: null as never }))
+  else if (plainCode) unwrap(await sb().rpc('set_slide_access_code', { p_slide_id: id, p_code: plainCode }))
+  return unwrap(await sb().from('slides').select('*').eq('id', id).single())
+}
+
+/** Delete the row and its stored file (embed URLs have no file). */
+export async function deleteSlide(id: string) {
+  const row = unwrap<Pick<Slide, 'file_url'> | null>(await sb().from('slides').select('file_url').eq('id', id).maybeSingle())
+  unwrap(await sb().from('slides').delete().eq('id', id))
+  if (row && !/^https?:\/\//.test(row.file_url)) await sb().storage.from(STORAGE_BUCKETS.slides).remove([row.file_url])
+}
+
+/** Persist a new global order after drag-and-drop (one small update per row). */
 export async function reorderSlides(ids: string[]) {
-  const byId = new Map(slides.all().map((s) => [s.id, s]))
-  slides.replaceAll(ids.map((id, i) => ({ ...byId.get(id)!, order_index: i })))
-  return delay(undefined, 150)
+  const results = await Promise.all(ids.map((id, order_index) => sb().from('slides').update({ order_index }).eq('id', id)))
+  results.forEach((r) => unwrap(r))
 }
 
 /**
- * Upload a slide file to the PRIVATE bucket.
- * SUPABASE:
- *   const path = `${moduleCategory}/${slug}/${file.name}`
- *   await sb.storage.from('slides').upload(path, file, { upsert: true, contentType: file.type })
- *   return path   // stored in slides.file_url; served only via createSignedUrl()
- * HTML bundles (.zip) are unpacked by an Edge Function into `${slug}/index.html`.
+ * Upload a slide file to the PRIVATE `slides` bucket with real progress
+ * (supabase-js has no upload progress, so this talks to Storage REST via XHR
+ * with the admin's session token). Returns the storage path saved in file_url.
  */
 export async function uploadSlideFile(slug: string, file: File, onProgress?: (p: number) => void) {
-  for (let p = 0; p <= 1; p += 0.2) {
-    onProgress?.(p)
-    await delay(null, 120)
-  }
-  // Mock: object URL lives for this tab only.
-  return { path: URL.createObjectURL(file), name: `${slug}/${file.name}` }
-}
+  const { data } = await sb().auth.getSession()
+  const token = data.session?.access_token
+  if (!token) throw new Error('Not signed in')
+  const safe = file.name.toLowerCase().replace(/[^a-z0-9.]+/g, '-').slice(-80)
+  const path = `${slug}/${crypto.randomUUID()}-${safe}`
+  const url = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/${STORAGE_BUCKETS.slides}/${path}`
 
-/** Mock helper so the admin can show the current code (in production the plain code is shown once, at creation). */
-export const peekMockCode = (slug: string) => codes()[slug] ?? null
+  await new Promise<void>((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+    xhr.open('POST', url)
+    xhr.setRequestHeader('Authorization', `Bearer ${token}`)
+    xhr.setRequestHeader('apikey', import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? '')
+    xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream')
+    xhr.setRequestHeader('x-upsert', 'false')
+    xhr.upload.onprogress = (e) => e.lengthComputable && onProgress?.(e.loaded / e.total)
+    xhr.onload = () => (xhr.status < 300 ? resolve() : reject(new Error(`Upload failed (${xhr.status}): ${xhr.responseText}`)))
+    xhr.onerror = () => reject(new Error('Network error during upload'))
+    xhr.send(file)
+  })
+  onProgress?.(1)
+  return { path, name: file.name }
+}
 
 /* ---------------------------------------------------------------- public */
 
-/** SUPABASE: sb.rpc('get_public_slide', { p_slug: slug }) */
 export async function getPublicSlide(slug: string): Promise<PublicSlideMeta | null> {
-  const s = slides.find((r) => r.slug === slug && r.is_active)
-  if (!s) return delay(null)
-  const { title, description, presenter, file_type, is_protected, module_category } = s
-  return delay({ slug, title, description, presenter, file_type, is_protected, module_category })
+  return unwrap(await sb().rpc('get_public_slide', { p_slug: slug }))
 }
 
 export type AccessResult = { ok: true; grant: SlideAccessGrant } | { ok: false; reason: 'wrong-code' | 'not-found' | 'rate-limit' }
 
-const attempts = new Map<string, number[]>()
+const REASONS: Record<number, 'wrong-code' | 'not-found' | 'rate-limit'> = { 403: 'wrong-code', 404: 'not-found', 429: 'rate-limit' }
 
-/**
- * Verify the access code and get a signed URL.
- * SUPABASE: const { data, error } = await sb.rpc('verify_slide_access', { p_slug: slug, p_code: code })
- *           (server enforces rate limiting and writes slide_access_logs)
- */
+/** Verify the code (null for public decks) through the `slide-access` Edge Function. */
 export async function verifySlideAccess(slug: string, code: string | null): Promise<AccessResult> {
-  const recent = (attempts.get(slug) ?? []).filter((t) => Date.now() - t < 60_000)
-  if (recent.length >= 5) return delay({ ok: false, reason: 'rate-limit' })
-  const s = slides.find((r) => r.slug === slug && r.is_active)
-  if (!s) return delay({ ok: false, reason: 'not-found' })
-  if (s.is_protected) {
-    const expected = codes()[slug]
-    if (!code || !expected || code.trim().toUpperCase() !== expected.toUpperCase()) {
-      attempts.set(slug, [...recent, Date.now()])
-      return delay({ ok: false, reason: 'wrong-code' }, 450)
-    }
-  }
-  attempts.delete(slug)
-  logs.insert({ id: uuid(), slide_id: s.id, accessed_at: now(), ip_hash: null, user_agent: navigator.userAgent.slice(0, 120), referrer: document.referrer || null })
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { access_code, ...safe } = s
-  return delay({ ok: true, grant: { slide: safe, signed_url: s.file_url, expires_in: 3600 } }, 350)
+  const { data, error, response } = await sb().functions.invoke<SlideAccessGrant>('slide-access', { body: { slug, code } })
+  if (!error && data) return { ok: true, grant: data }
+  const reason = response ? REASONS[response.status] : undefined
+  if (reason) return { ok: false, reason }
+  throw new Error(error?.message ?? 'Slide access failed')
 }
 
 /** Generate a 6-digit PIN using the CSPRNG (never Math.random for access codes). */

@@ -1,0 +1,11 @@
+# Supabase CLI config for the portfolio repo (linked project: raydiansyah).
+# Migrations in supabase/migrations are the source of truth for the shared project.
+
+# Public endpoint: visitors are anonymous; the function does its own validation
+# and rate limiting (per client IP) before minting signed URLs.
+[functions.slide-access]
+verify_jwt = false
+
+# Admin-only: the platform verifies the JWT; the function checks the admin role.
+[functions.inbox-reply]
+verify_jwt = true

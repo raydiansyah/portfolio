@@ -6,10 +6,10 @@ import { FEATURED_PROJECTS, PROJECTS } from '../../data/content'
 import { PanelHeading } from './PanelHeading'
 import { ProjectThumb } from './ProjectThumb'
 
-const years = FEATURED_PROJECTS.map((p) => Number(p.year))
-const RANGE = `${Math.min(...years)} — ${Math.max(...years)}`
-
 export function PortfolioListPanel() {
+  // Computed per render: the list is replaced in place once live content loads.
+  const years = FEATURED_PROJECTS.map((p) => Number(p.year)).filter(Number.isFinite)
+  const RANGE = years.length ? `${Math.min(...years)} — ${Math.max(...years)}` : ''
   return (
     <div className="flex flex-col gap-12">
       <PanelHeading

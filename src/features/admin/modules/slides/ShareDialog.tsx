@@ -1,13 +1,12 @@
 import { Check, Copy, Download, Loader2, Lock, MessageSquareText, RefreshCw } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { Slide } from '@/types/supabase'
-import { generatePin, peekMockCode, shareUrl, updateSlide } from '../../data/slides'
+import { generatePin, shareUrl, updateSlide } from '../../data/slides'
 import { copyText } from './shared'
 
 interface Props {
@@ -28,17 +27,13 @@ export function ShareDialog({ slide, freshCode = null, onClose, onUpdated }: Pro
   )
 }
 
-type CodeState = { value: string; source: 'fresh' | 'mock' } | null
+/** Codes are stored hashed, so a plain code is only known right after it was set. */
+type CodeState = { value: string } | null
 
 function ShareBody({ slide, freshCode, onUpdated }: { slide: Slide; freshCode: string | null; onUpdated: (s: Slide) => void }) {
   const url = shareUrl(slide.slug)
   const [qr, setQr] = useState<string | null>(null)
-  const [code, setCode] = useState<CodeState>(() => {
-    if (!slide.is_protected) return null
-    if (freshCode) return { value: freshCode, source: 'fresh' }
-    const mock = peekMockCode(slide.slug)
-    return mock ? { value: mock, source: 'mock' } : null
-  })
+  const [code, setCode] = useState<CodeState>(() => (slide.is_protected && freshCode ? { value: freshCode } : null))
   const [regenerating, setRegenerating] = useState(false)
   const [copied, setCopied] = useState<string | null>(null)
   const timer = useRef<number | undefined>(undefined)
@@ -77,7 +72,7 @@ function ShareBody({ slide, freshCode, onUpdated }: { slide: Slide; freshCode: s
     setRegenerating(true)
     try {
       const updated = await updateSlide(slide.id, {}, next)
-      setCode({ value: next, source: 'fresh' })
+      setCode({ value: next })
       onUpdated(updated)
       toast.success('New access code issued. The old code no longer works.')
     } catch {
@@ -137,7 +132,6 @@ function ShareBody({ slide, freshCode, onUpdated }: { slide: Slide; freshCode: s
               <Lock className="size-4 text-muted-foreground" aria-hidden />
               Access code
             </h3>
-            {code?.source === 'mock' && <Badge variant="outline" className="font-mono text-[10px] uppercase">mock</Badge>}
           </div>
           {code ? (
             <>
@@ -149,9 +143,7 @@ function ShareBody({ slide, freshCode, onUpdated }: { slide: Slide; freshCode: s
                   {copied === 'code' ? <Check aria-hidden /> : <Copy aria-hidden />}
                 </Button>
               </div>
-              {code.source === 'fresh' && (
-                <p className="text-xs font-medium text-amber-700 dark:text-amber-400">Copy it now — it is stored hashed and won’t be shown again.</p>
-              )}
+              <p className="text-xs font-medium text-amber-700 dark:text-amber-400">Copy it now — it is stored hashed and won’t be shown again.</p>
             </>
           ) : (
             <p className="text-sm text-muted-foreground">The code is stored hashed and can’t be displayed. Regenerate to issue a new one.</p>
