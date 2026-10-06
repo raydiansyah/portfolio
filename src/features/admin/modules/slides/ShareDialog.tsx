@@ -1,4 +1,4 @@
-import { Check, Copy, Download, Loader2, Lock, MessageSquareText, RefreshCw } from 'lucide-react'
+import { Check, Copy, Download, Lock, MessageSquareText } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -6,35 +6,32 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { Slide } from '@/types/supabase'
-import { generatePin, shareUrl, updateSlide } from '../../data/slides'
+import { getModule } from '../../data/modules'
+import { shareUrl } from '../../data/slides'
 import { copyText } from './shared'
 
 interface Props {
   slide: Slide | null
-  /** Plain code that was just set (shown once). */
-  freshCode?: string | null
   onClose: () => void
-  onUpdated: (slide: Slide) => void
 }
 
-export function ShareDialog({ slide, freshCode = null, onClose, onUpdated }: Props) {
+export function ShareDialog({ slide, onClose }: Props) {
   return (
     <Dialog open={slide !== null} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-md">
-        {slide && <ShareBody key={slide.id} slide={slide} freshCode={freshCode} onUpdated={onUpdated} />}
+        {slide && <ShareBody key={slide.id} slide={slide} />}
       </DialogContent>
     </Dialog>
   )
 }
 
-/** Codes are stored hashed, so a plain code is only known right after it was set. */
-type CodeState = { value: string } | null
+/** The access code belongs to the slide's module; it is loaded when the dialog opens. */
+type CodeState = { value: string; expires: string | null } | null
 
-function ShareBody({ slide, freshCode, onUpdated }: { slide: Slide; freshCode: string | null; onUpdated: (s: Slide) => void }) {
+function ShareBody({ slide }: { slide: Slide }) {
   const url = shareUrl(slide.slug)
   const [qr, setQr] = useState<string | null>(null)
-  const [code, setCode] = useState<CodeState>(() => (slide.is_protected && freshCode ? { value: freshCode } : null))
-  const [regenerating, setRegenerating] = useState(false)
+  const [code, setCode] = useState<CodeState>(null)
   const [copied, setCopied] = useState<string | null>(null)
   const timer = useRef<number | undefined>(undefined)
 
@@ -55,6 +52,17 @@ function ShareBody({ slide, freshCode, onUpdated }: { slide: Slide; freshCode: s
 
   useEffect(() => () => window.clearTimeout(timer.current), [])
 
+  useEffect(() => {
+    if (!slide.is_protected || !slide.module_id) return
+    let alive = true
+    getModule(slide.module_id)
+      .then((m) => alive && m?.access_code && setCode({ value: m.access_code, expires: m.access_expires_at }))
+      .catch(() => alive && toast.error('Could not load the access code.'))
+    return () => {
+      alive = false
+    }
+  }, [slide.is_protected, slide.module_id])
+
   const copy = async (text: string, what: string) => {
     if (!(await copyText(text))) return toast.error('Clipboard is unavailable. Select the text and copy it manually.')
     setCopied(what)
@@ -66,21 +74,6 @@ function ShareBody({ slide, freshCode, onUpdated }: { slide: Slide; freshCode: s
     [`You're invited to view “${slide.title}”.`, '', `Link: ${url}`, code ? `Access code: ${code.value}` : null, '', 'The code is personal — please don’t forward it.']
       .filter((l) => l !== null)
       .join('\n')
-
-  const regenerate = async () => {
-    const next = generatePin()
-    setRegenerating(true)
-    try {
-      const updated = await updateSlide(slide.id, {}, next)
-      setCode({ value: next })
-      onUpdated(updated)
-      toast.success('New access code issued. The old code no longer works.')
-    } catch {
-      toast.error('Could not regenerate the code.')
-    } finally {
-      setRegenerating(false)
-    }
-  }
 
   const fileName = `qr-${slide.slug}.png`
 
@@ -136,30 +129,24 @@ function ShareBody({ slide, freshCode, onUpdated }: { slide: Slide; freshCode: s
           {code ? (
             <>
               <div className="flex items-center gap-2">
-                <output className="flex-1 rounded-md bg-muted px-3 py-2 font-mono text-lg tracking-[0.3em] tabular-nums" aria-label="Access code">
+                <output className="flex-1 rounded-md bg-muted px-3 py-2 font-mono text-lg tracking-[0.2em] tabular-nums" aria-label="Access code">
                   {code.value}
                 </output>
                 <Button type="button" variant="outline" size="icon-lg" onClick={() => void copy(code.value, 'code')} aria-label="Copy access code">
                   {copied === 'code' ? <Check aria-hidden /> : <Copy aria-hidden />}
                 </Button>
               </div>
-              <p className="text-xs font-medium text-amber-700 dark:text-amber-400">Copy it now — it is stored hashed and won’t be shown again.</p>
-            </>
-          ) : (
-            <p className="text-sm text-muted-foreground">The code is stored hashed and can’t be displayed. Regenerate to issue a new one.</p>
-          )}
-          <div className="flex flex-wrap gap-2">
-            {code && (
-              <Button type="button" variant="secondary" onClick={() => void copy(invitation(), 'invitation')}>
+              <p className="text-xs text-muted-foreground">
+                Shared by every slide in this module{code.expires ? ` · valid until ${new Date(code.expires).toLocaleDateString()}` : ''}. Change it in Modules.
+              </p>
+              <Button type="button" variant="secondary" className="self-start" onClick={() => void copy(invitation(), 'invitation')}>
                 {copied === 'invitation' ? <Check aria-hidden /> : <MessageSquareText aria-hidden />}
                 Copy invitation
               </Button>
-            )}
-            <Button type="button" variant="ghost" onClick={() => void regenerate()} disabled={regenerating}>
-              {regenerating ? <Loader2 className="animate-spin" aria-hidden /> : <RefreshCw aria-hidden />}
-              Regenerate code
-            </Button>
-          </div>
+            </>
+          ) : (
+            <Skeleton className="h-11 rounded-md" aria-label="Loading access code" />
+          )}
         </section>
       )}
 

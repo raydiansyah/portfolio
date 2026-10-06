@@ -10,7 +10,7 @@ const FORMAT_LABEL = { html: 'HTML', pdf: 'PDF', ppt: 'PPT' } as const
 
 /**
  * Public module page (/slides/m/<slug>): the ordered decks of a course,
- * engagement or workshop. Each deck still opens through its own access gate.
+ * engagement or workshop. Locked modules share one access code across their decks.
  */
 export function ModulePage({ slug, onOpen }: { slug: string; onOpen: (slideSlug: string) => void }) {
   const [state, setState] = useState<{ status: 'loading' } | { status: 'missing' } | { status: 'ready'; data: PublicModule }>({ status: 'loading' })

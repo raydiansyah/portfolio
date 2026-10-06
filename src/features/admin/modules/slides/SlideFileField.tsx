@@ -1,14 +1,11 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { Input } from '@/components/ui/input'
 import { Progress } from '@/components/ui/progress'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import type { SlideFileType } from '@/types/supabase'
 import { uploadSlideFile } from '../../data/slides'
 import { Dropzone } from '../../ui/Dropzone'
-import { FILE_TYPES, FORMATS, fieldA11y } from './shared'
-
-export type PptSource = 'upload' | 'embed'
+import { FILE_TYPES, FORMATS } from './shared'
 
 interface Props {
   fileType: SlideFileType
@@ -18,20 +15,14 @@ interface Props {
   fileName: string
   onUploaded: (path: string, name: string) => void
   onClear: () => void
-  pptSource: PptSource
-  onPptSourceChange: (s: PptSource) => void
-  embedUrl: string
-  onEmbedUrlChange: (url: string) => void
   fileError?: string | null
-  embedError?: string | null
   onBusyChange: (busy: boolean) => void
 }
 
-/** Format picker (HTML / PDF / PPT) + per-format upload zone or embed URL. */
+/** Format picker (HTML / PDF) + upload zone (to R2). */
 export function SlideFileField(p: Props) {
   const [progress, setProgress] = useState<number | null>(null)
   const fmt = FORMATS[p.fileType]
-  const useEmbed = p.fileType === 'ppt' && p.pptSource === 'embed'
 
   const upload = async (file: File) => {
     setProgress(0)
@@ -57,7 +48,7 @@ export function SlideFileField(p: Props) {
           value={p.fileType}
           onValueChange={(v) => v && p.onFileTypeChange(v as SlideFileType)}
           aria-labelledby="slide-format-label"
-          className="grid w-full grid-cols-3"
+          className="grid w-full grid-cols-2"
         >
           {FILE_TYPES.map((t) => {
             const Icon = FORMATS[t].icon
@@ -76,40 +67,7 @@ export function SlideFileField(p: Props) {
         </ToggleGroup>
       </div>
 
-      {p.fileType === 'ppt' && (
-        <ToggleGroup
-          type="single"
-          size="sm"
-          variant="outline"
-          spacing={0}
-          value={p.pptSource}
-          onValueChange={(v) => v && p.onPptSourceChange(v as PptSource)}
-          aria-label="PowerPoint source"
-        >
-          <ToggleGroupItem value="upload">Upload file</ToggleGroupItem>
-          <ToggleGroupItem value="embed">Embed URL</ToggleGroupItem>
-        </ToggleGroup>
-      )}
-
-      {useEmbed ? (
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="slide-embed-url" className="text-sm font-medium">Google Slides / Office embed URL</label>
-          <Input
-            {...fieldA11y('slide-embed-url', p.embedError)}
-            type="url"
-            inputMode="url"
-            placeholder="https://docs.google.com/presentation/d/…/embed"
-            value={p.embedUrl}
-            onChange={(e) => p.onEmbedUrlChange(e.target.value.trim())}
-          />
-          {p.embedError ? (
-            <p id="slide-embed-url-error" role="alert" className="text-xs text-destructive">{p.embedError}</p>
-          ) : (
-            <p className="text-xs text-muted-foreground">Use the “Publish to web → Embed” link. Must start with https://</p>
-          )}
-        </div>
-      ) : (
-        <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2">
           <Dropzone
             key={p.fileType}
             accept={fmt.accept}
@@ -128,8 +86,7 @@ export function SlideFileField(p: Props) {
             </div>
           )}
           {p.fileError && <p role="alert" className="text-xs text-destructive">{p.fileError}</p>}
-        </div>
-      )}
+      </div>
     </div>
   )
 }

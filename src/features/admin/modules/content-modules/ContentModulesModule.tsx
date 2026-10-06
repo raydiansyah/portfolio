@@ -1,4 +1,4 @@
-import { Library, MoreHorizontal, Pencil, Plus, Trash2 } from 'lucide-react'
+import { Library, Lock, MoreHorizontal, Pencil, Plus, Trash2 } from 'lucide-react'
 import { useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { Link, useLocation, useSearch } from 'wouter'
@@ -142,6 +142,12 @@ function ModuleCard({ module: m, onEdit, onDelete }: { module: ModuleWithStats; 
         </h2>
         <p className="font-mono text-xs text-muted-foreground">
           {m.slide_count} {m.slide_count === 1 ? 'slide' : 'slides'} · {m.active_count} active
+          {m.access_code && (
+            <span className="ml-1.5 inline-flex items-center gap-1 align-middle">
+              · <Lock className="size-3" aria-hidden />
+              {m.access_expires_at ? `locked until ${new Date(m.access_expires_at).toLocaleDateString()}` : 'locked'}
+            </span>
+          )}
         </p>
       </div>
       <div className="absolute top-2 right-2 z-10">

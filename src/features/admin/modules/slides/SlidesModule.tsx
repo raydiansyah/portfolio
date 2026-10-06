@@ -38,7 +38,7 @@ export default function SlidesModule() {
   const [format, setFormat] = useState<FormatFilter>('all')
   const [editing, setEditing] = useState<Slide | null>(null)
   const [creating, setCreating] = useState(false)
-  const [share, setShare] = useState<{ slide: Slide; code: string | null } | null>(null)
+  const [share, setShare] = useState<Slide | null>(null)
 
   // `?new=1` (e.g. from the dashboard quick action) opens the create sheet.
   const params = new URLSearchParams(search)
@@ -99,13 +99,12 @@ export default function SlidesModule() {
     }
   }
 
-  const onSaved = (saved: Slide, plainCode: string | null) => {
+  const onSaved = (saved: Slide) => {
     const wasNew = !editing
     closeSheet()
     reload()
     weekly.reload()
-    // Production only reveals a plain code right after it is set — surface it immediately.
-    if (plainCode || wasNew) setShare({ slide: saved, code: plainCode })
+    if (wasNew) setShare(saved)
   }
 
   const openCreate = () => {
@@ -199,7 +198,7 @@ export default function SlidesModule() {
         <EmptyState
           icon={Presentation}
           title="No slides yet"
-          description="Upload an HTML bundle, a PDF or a PowerPoint deck to get a shareable link."
+          description="Upload a self-contained HTML deck or a PDF to get a shareable link."
           action={<Button onClick={openCreate}><Upload aria-hidden />Upload slide</Button>}
         />
       ) : visible.length === 0 ? (
@@ -214,7 +213,7 @@ export default function SlidesModule() {
           reorderable={reorderable}
           onReorder={(ids) => void onReorder(ids)}
           onToggleActive={(s, v) => void onToggleActive(s, v)}
-          onShare={(s) => setShare({ slide: s, code: null })}
+          onShare={setShare}
           onEdit={(s) => setEditing(s)}
           onDelete={(s) => void onDelete(s)}
         />
@@ -231,15 +230,7 @@ export default function SlidesModule() {
         onOpenChange={(o) => !o && closeSheet()}
         onSaved={onSaved}
       />
-      <ShareDialog
-        slide={share?.slide ?? null}
-        freshCode={share?.code ?? null}
-        onClose={() => setShare(null)}
-        onUpdated={(s) => {
-          patchLocal(s)
-          setShare((cur) => (cur ? { ...cur, slide: s } : cur))
-        }}
-      />
+      <ShareDialog slide={share} onClose={() => setShare(null)} />
     </div>
   )
 }

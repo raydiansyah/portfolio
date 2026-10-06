@@ -41,6 +41,10 @@ export function AccessGate({ meta, onGranted }: Props) {
       setError('Too many attempts. Wait a minute, then try again.')
       return
     }
+    if (res.reason === 'expired') {
+      setError('Access to this deck has ended. Contact the presenter if you still need it.')
+      return
+    }
     if (res.reason === 'not-found') {
       setError('This deck is no longer available.')
       return

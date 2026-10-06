@@ -1,18 +1,15 @@
 /**
- * slide-access — verify a slide's access code and return a short-lived signed URL.
+ * slide-access — check a slide's module access code and return the slide.
  *
  * POST { slug: string, code?: string | null }
- *   200 { slide, signed_url, expires_in }
- *   403 { error: 'wrong-code' } · 404 { error: 'not-found' } · 429 { error: 'rate-limited' }
+ *   200 { slide }   (slide.file_url = R2 object key; the client prefixes the public base URL)
+ *   403 { error: 'wrong-code' } · 404 { error: 'not-found' } · 410 { error: 'expired' } · 429 { error: 'rate-limited' }
  *
- * The code check, rate limit (per hashed client IP) and access log happen in
- * private.check_slide_access() via the service-role-only RPC. Files in the
- * private `slides` bucket are served through createSignedUrl; https embed URLs
- * (Google Slides / Office) are returned as-is.
+ * Slides live in `slide_presentasi`, grouped by `material` which holds the access
+ * code and expiry. The check, rate limit (per hashed client IP) and access log run
+ * in private.check_slide_access() via the service-role-only RPC.
  */
 import { createClient } from 'npm:@supabase/supabase-js@2'
-
-const EXPIRES_IN = 60 * 60 // 1 hour
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -57,17 +54,8 @@ Deno.serve(async (req) => {
   const status = (data as { status: string }).status
   if (status === 'not-found') return json({ error: 'not-found' }, 404)
   if (status === 'rate-limited') return json({ error: 'rate-limited' }, 429)
+  if (status === 'expired') return json({ error: 'expired' }, 410)
   if (status === 'wrong-code') return json({ error: 'wrong-code' }, 403)
 
-  const slide = (data as { slide: { file_url: string } }).slide
-  let signedUrl = slide.file_url
-  if (!/^https:\/\//.test(slide.file_url)) {
-    const signed = await sb.storage.from('slides').createSignedUrl(slide.file_url, EXPIRES_IN)
-    if (signed.error || !signed.data) {
-      console.error('sign failed', signed.error?.message)
-      return json({ error: 'file-unavailable' }, 502)
-    }
-    signedUrl = signed.data.signedUrl
-  }
-  return json({ slide, signed_url: signedUrl, expires_in: EXPIRES_IN })
+  return json({ slide: (data as { slide: unknown }).slide })
 })

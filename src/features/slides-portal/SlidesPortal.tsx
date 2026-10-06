@@ -31,7 +31,7 @@ function navigate(path: string) {
 
 /* ------------------------------------------------- session grant cache */
 
-// Only the grant (metadata + signed URL) is cached — never the access code.
+// Only the grant (metadata + file URL) is cached — never the access code.
 const GRANT_TTL_MS = 60 * 60 * 1000
 const grantKey = (slug: string) => `slides-grant:${slug}`
 
@@ -40,7 +40,6 @@ function loadGrant(slug: string): SlideAccessGrant | null {
     const raw = sessionStorage.getItem(grantKey(slug))
     if (!raw) return null
     const { grant, at } = JSON.parse(raw) as { grant: SlideAccessGrant; at: number }
-    // Signed URLs expire too: honour whichever window is shorter.
     if (Date.now() - at < Math.min(GRANT_TTL_MS, grant.expires_in * 1000)) return grant
     sessionStorage.removeItem(grantKey(slug))
   } catch {
@@ -119,11 +118,12 @@ function SlideRoute({ slug }: { slug: string }) {
       if (!alive) return
       if (!meta) return setState({ kind: 'not-found' })
       if (meta.is_protected) return setState({ kind: 'gate', meta })
-      // Public deck: no code needed, but the signed URL still comes from the RPC.
+      // Open deck: no code needed, but the file URL still comes from the Edge Function.
       const res = await verifySlideAccess(slug, null)
       if (!alive) return
       if (res.ok) grant(res.grant)
       else if (res.reason === 'not-found') setState({ kind: 'not-found' })
+      else if (res.reason === 'expired') setState({ kind: 'error', meta, message: 'Access to this deck has ended. Contact the presenter if you still need it.' })
       else setState({ kind: 'error', meta, message: 'Too many requests. Wait a minute, then reload the page.' })
     })()
     return () => {

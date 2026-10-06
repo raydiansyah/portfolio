@@ -11,7 +11,8 @@ import { STORAGE_BUCKETS, type ContentModule, type SlideModule } from '@/types/s
 import { createModule, updateModule } from '../../data/modules'
 import { uploadPublicFile } from '../../data/repo'
 import { Dropzone } from '../../ui/Dropzone'
-import { MODULES, MODULE_LABELS, SLUG_RE, fieldA11y, slugify } from '../slides/shared'
+import { CUSTOM_CODE_RE, MODULES, MODULE_LABELS, PIN_RE, SLUG_RE, fieldA11y, slugify } from '../slides/shared'
+import { AccessCodeField, type CodeMode } from './AccessCodeField'
 
 interface Props {
   open: boolean
@@ -34,7 +35,16 @@ export function ModuleDialog({ open, onOpenChange, ...rest }: Props) {
   )
 }
 
-type Errors = Partial<Record<'title' | 'slug', string>>
+type Errors = Partial<Record<'title' | 'slug' | 'code' | 'expiry', string>>
+
+/** ISO timestamp → yyyy-mm-dd in local time (for <input type="date">). */
+const toDateInput = (iso: string | null) => {
+  if (!iso) return ''
+  const d = new Date(iso)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+/** yyyy-mm-dd → end of that day, local time, as ISO. */
+const fromDateInput = (v: string) => (v ? new Date(`${v}T23:59:59`).toISOString() : null)
 
 function ModuleForm({ module, takenSlugs, nextOrder, onOpenChange, onSaved }: Omit<Props, 'open'>) {
   const [title, setTitle] = useState(module?.title ?? '')
@@ -44,6 +54,10 @@ function ModuleForm({ module, takenSlugs, nextOrder, onOpenChange, onSaved }: Om
   const [category, setCategory] = useState<SlideModule>(module?.category ?? 'materi_kuliah')
   const [published, setPublished] = useState(module?.is_published ?? false)
   const [cover, setCover] = useState<string | null>(module?.cover_url ?? null)
+  const [locked, setLocked] = useState(Boolean(module?.access_code))
+  const [code, setCode] = useState(module?.access_code ?? '')
+  const [codeMode, setCodeMode] = useState<CodeMode>(() => (!module?.access_code || PIN_RE.test(module.access_code) ? 'pin' : 'custom'))
+  const [expiry, setExpiry] = useState(toDateInput(module?.access_expires_at ?? null))
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [errors, setErrors] = useState<Errors>({})
@@ -53,6 +67,12 @@ function ModuleForm({ module, takenSlugs, nextOrder, onOpenChange, onSaved }: Om
     if (!title.trim()) e.title = 'Title is required.'
     if (!SLUG_RE.test(slug)) e.slug = 'Use lowercase letters, numbers and dashes only.'
     else if (takenSlugs.includes(slug) && slug !== module?.slug) e.slug = 'Another module already uses this slug.'
+    // Existing codes (also used by raydiansyah.com) stay valid as they are.
+    const unchanged = code === module?.access_code
+    if (locked && !code) e.code = 'Set an access code or turn the lock off.'
+    else if (locked && !unchanged && codeMode === 'pin' && !PIN_RE.test(code)) e.code = 'PIN must be exactly 6 digits.'
+    else if (locked && !unchanged && codeMode === 'custom' && !CUSTOM_CODE_RE.test(code)) e.code = 'At least 6 letters, digits or dashes.'
+    if (locked && expiry && expiry !== toDateInput(module?.access_expires_at ?? null) && new Date(`${expiry}T23:59:59`) < new Date()) e.expiry = 'Pick today or a later date.'
     return e
   }
 
@@ -71,10 +91,17 @@ function ModuleForm({ module, takenSlugs, nextOrder, onOpenChange, onSaved }: Om
     ev.preventDefault()
     const e = validate()
     setErrors(e)
-    if (Object.keys(e).length) return
+    if (Object.keys(e).length) {
+      // Focus after React has rendered the error state.
+      const form = ev.currentTarget as HTMLFormElement
+      setTimeout(() => form.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus())
+      return
+    }
     const draft = {
       slug, title: title.trim(), description: description.trim() || null, category,
       cover_url: cover, is_published: published, order_index: module?.order_index ?? nextOrder,
+      access_code: locked ? code : null,
+      access_expires_at: locked ? fromDateInput(expiry) : null,
     }
     setSaving(true)
     try {
@@ -152,10 +179,34 @@ function ModuleForm({ module, takenSlugs, nextOrder, onOpenChange, onSaved }: Om
         onClear={() => setCover(null)}
       />
 
+      <section className="flex flex-col gap-3" aria-labelledby="module-access-heading">
+        <label className="flex items-center justify-between gap-4 rounded-md border p-3">
+          <span className="grid">
+            <span id="module-access-heading" className="text-sm font-medium">{locked ? 'Locked with access code' : 'Open access'}</span>
+            <span className="text-xs text-muted-foreground">{locked ? 'Viewers enter this code once for any slide in the module.' : 'Anyone with a slide link can view it.'}</span>
+          </span>
+          <Switch checked={locked} onCheckedChange={setLocked} aria-label="Lock with access code" />
+        </label>
+        {locked && (
+          <>
+            <AccessCodeField mode={codeMode} onModeChange={setCodeMode} code={code} onCodeChange={setCode} error={errors.code} />
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="module-expiry" className="text-sm font-medium">Access ends</label>
+              <Input {...fieldA11y('module-expiry', errors.expiry)} type="date" value={expiry} onChange={(e) => setExpiry(e.target.value)} className="w-full sm:w-48" />
+              {errors.expiry ? (
+                <p id="module-expiry-error" role="alert" className="text-xs text-destructive">{errors.expiry}</p>
+              ) : (
+                <p className="text-xs text-muted-foreground">Optional. After this day the code stops working. Leave empty for no end date.</p>
+              )}
+            </div>
+          </>
+        )}
+      </section>
+
       <label className="flex items-center justify-between gap-4 rounded-md border p-3">
         <span className="grid">
           <span className="text-sm font-medium">Published</span>
-          <span className="text-xs text-muted-foreground">Visible at its public link. Each deck keeps its own access code.</span>
+          <span className="text-xs text-muted-foreground">Visible at its public link and on raydiansyah.com.</span>
         </span>
         <Switch checked={published} onCheckedChange={setPublished} aria-label="Published" />
       </label>

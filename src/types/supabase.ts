@@ -8,7 +8,7 @@
  * migration is applied.
  *
  * Storage buckets (see STORAGE_BUCKETS): `avatars`, `branding`, `portfolio-media`,
- * `skill-icons` (public) and `slides` (private, served via signed URLs only).
+ * `skill-icons` (public). Slide files live in Cloudflare R2 (see data/slides.ts).
  */
 
 export type Timestamp = string // ISO 8601 (timestamptz)
@@ -135,9 +135,10 @@ export interface Skill {
 }
 
 /**
- * slides — `access_code` stores a bcrypt hash (pgcrypto `crypt()`), never the
- * plain code. Public clients cannot select this table; they call the
- * `verify_slide_access` RPC which returns metadata + a short-lived signed URL.
+ * Slide — dashboard view of a `slide_presentasi` row (mapped in data/slides.ts).
+ * Access is per content module (`material.akses_kode`), so `is_protected` is
+ * derived from the slide's module. Public clients never read the table; the
+ * `slide-access` Edge Function checks the code and returns the file URL.
  */
 export interface Slide {
   id: UUID
@@ -148,11 +149,11 @@ export interface Slide {
   description: string | null
   presenter: string | null
   file_type: SlideFileType
-  /** Storage path inside the private `slides` bucket, or an external embed URL (Google Slides). */
+  /** Object key in the Cloudflare R2 slide bucket (relative to VITE_R2_PUBLIC_BASE_URL). */
   file_url: string
   page_count: number | null
   outline: SlideOutlineItem[]
-  access_code: string | null
+  /** True when the slide's module has an access code. */
   is_protected: boolean
   module_category: SlideModule
   order_index: number
@@ -168,8 +169,9 @@ export interface SlideOutlineItem {
 }
 
 /**
- * slide_modules — a course / client engagement / workshop series that groups
- * many slides. Slides keep their own access codes; the module page lists them.
+ * ContentModule — dashboard view of a `material` row: a course, client engagement
+ * or workshop series grouping many slides. The access code (stored as entered,
+ * shared with raydiansyah.com) and its expiry apply to every slide in it.
  */
 export interface ContentModule {
   id: UUID
@@ -180,6 +182,8 @@ export interface ContentModule {
   cover_url: string | null // storage: branding/modules/...
   is_published: boolean
   order_index: number
+  access_code: string | null
+  access_expires_at: Timestamp | null
   created_at: Timestamp
   updated_at: Timestamp
 }
@@ -200,9 +204,9 @@ export interface SlideAccessLog {
   referrer: string | null
 }
 
-/** Result of `rpc('verify_slide_access', { p_slug, p_code })`. */
+/** Response of the `slide-access` Edge Function. */
 export interface SlideAccessGrant {
-  slide: Omit<Slide, 'access_code'>
+  slide: Slide
   signed_url: string
   expires_in: number // seconds
 }
@@ -229,16 +233,12 @@ export interface Database {
       services: TableDef<Service, Insert<Service, Generated>>
       inboxes: TableDef<Inbox, Insert<Inbox, 'id' | 'created_at' | 'status' | 'is_important' | 'replied_at'>>
       skills: TableDef<Skill, Insert<Skill, Generated>>
-      slide_modules: TableDef<ContentModule, Insert<ContentModule, Generated>>
-      slides: TableDef<Slide, Insert<Slide, Generated | 'page_count' | 'outline' | 'module_id'>>
       slide_access_logs: TableDef<SlideAccessLog, Insert<SlideAccessLog, 'id' | 'accessed_at'>>
     }
     Views: Record<string, never>
     Functions: {
-      verify_slide_access: { Args: { p_slug: string; p_code: string | null }; Returns: SlideAccessGrant | null }
       get_public_slide: { Args: { p_slug: string }; Returns: PublicSlideMeta | null }
       get_public_module: { Args: { p_slug: string }; Returns: PublicModule | null }
-      set_slide_access_code: { Args: { p_slide_id: UUID; p_code: string | null }; Returns: undefined }
     }
     Enums: {
       publish_status: PublishStatus
@@ -256,5 +256,4 @@ export const STORAGE_BUCKETS = {
   branding: 'branding',
   portfolioMedia: 'portfolio-media',
   skillIcons: 'skill-icons',
-  slides: 'slides', // private
 } as const

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { generatePin } from '../../data/slides'
-import { codeStrength, fieldA11y } from './shared'
+import { codeStrength, fieldA11y } from '../slides/shared'
 
 export type CodeMode = 'pin' | 'custom'
 
@@ -13,15 +13,13 @@ interface Props {
   onModeChange: (mode: CodeMode) => void
   code: string
   onCodeChange: (code: string) => void
-  /** Editing a slide that already has a hashed code: empty input keeps it. */
-  hasExistingCode: boolean
   error?: string | null
 }
 
-/** Access-code input for locked slides: generated 6-digit PIN or a custom code. */
-export function AccessCodeField({ mode, onModeChange, code, onCodeChange, hasExistingCode, error }: Props) {
-  const [visible, setVisible] = useState(mode === 'pin')
-  const id = 'slide-access-code'
+/** Access-code input for locked modules: generated 6-digit PIN or a custom code. */
+export function AccessCodeField({ mode, onModeChange, code, onCodeChange, error }: Props) {
+  const [visible, setVisible] = useState(true)
+  const id = 'module-access-code'
   const strength = mode === 'custom' && code ? codeStrength(code) : null
 
   return (
@@ -57,7 +55,7 @@ export function AccessCodeField({ mode, onModeChange, code, onCodeChange, hasExi
             spellCheck={false}
             maxLength={mode === 'pin' ? 6 : 64}
             value={code}
-            placeholder={hasExistingCode ? 'Leave empty to keep the current code' : mode === 'pin' ? '000000' : 'min. 6 characters'}
+            placeholder={mode === 'pin' ? '000000' : 'min. 6 characters'}
             onChange={(e) => onCodeChange(mode === 'pin' ? e.target.value.replace(/\D/g, '') : e.target.value.replace(/[^A-Za-z0-9-]/g, ''))}
             className="h-9 pr-10 pl-8 font-mono tracking-wider"
           />
@@ -98,11 +96,6 @@ export function AccessCodeField({ mode, onModeChange, code, onCodeChange, hasExi
           ) : (
             'Letters, digits and dashes, at least 6 characters. Longer is safer.'
           )}
-        </p>
-      )}
-      {code && (
-        <p className="text-xs font-medium text-amber-700 dark:text-amber-400">
-          Copy this code now — it is stored hashed and won’t be shown again after saving.
         </p>
       )}
     </div>

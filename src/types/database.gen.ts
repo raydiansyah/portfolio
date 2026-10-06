@@ -178,6 +178,9 @@ export type Database = {
       }
       material: {
         Row: {
+          cover_url: string | null
+          kategori: Database["public"]["Enums"]["slide_module"]
+          urutan: number
           akses_berakhir_pada: string | null
           akses_kode: string | null
           created_by: string
@@ -190,6 +193,9 @@ export type Database = {
           status_tampil: boolean
         }
         Insert: {
+          cover_url?: string | null
+          kategori?: Database["public"]["Enums"]["slide_module"]
+          urutan?: number
           akses_berakhir_pada?: string | null
           akses_kode?: string | null
           created_by: string
@@ -202,6 +208,9 @@ export type Database = {
           status_tampil?: boolean
         }
         Update: {
+          cover_url?: string | null
+          kategori?: Database["public"]["Enums"]["slide_module"]
+          urutan?: number
           akses_berakhir_pada?: string | null
           akses_kode?: string | null
           created_by?: string
@@ -658,52 +667,18 @@ export type Database = {
             foreignKeyName: "slide_access_logs_slide_id_fkey"
             columns: ["slide_id"]
             isOneToOne: false
-            referencedRelation: "slides"
+            referencedRelation: "slide_presentasi"
             referencedColumns: ["id"]
           },
         ]
       }
-      slide_modules: {
-        Row: {
-          category: Database["public"]["Enums"]["slide_module"]
-          cover_url: string | null
-          created_at: string
-          description: string | null
-          id: string
-          is_published: boolean
-          order_index: number
-          slug: string
-          title: string
-          updated_at: string
-        }
-        Insert: {
-          category: Database["public"]["Enums"]["slide_module"]
-          cover_url?: string | null
-          created_at?: string
-          description?: string | null
-          id?: string
-          is_published?: boolean
-          order_index?: number
-          slug: string
-          title: string
-          updated_at?: string
-        }
-        Update: {
-          category?: Database["public"]["Enums"]["slide_module"]
-          cover_url?: string | null
-          created_at?: string
-          description?: string | null
-          id?: string
-          is_published?: boolean
-          order_index?: number
-          slug?: string
-          title?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       slide_presentasi: {
         Row: {
+          deskripsi: string | null
+          izinkan_unduh: boolean
+          jumlah_halaman: number | null
+          outline: Json
+          presenter: string | null
           created_by: string
           dibuat_pada: string
           id: string
@@ -716,6 +691,11 @@ export type Database = {
           urutan: number
         }
         Insert: {
+          deskripsi?: string | null
+          izinkan_unduh?: boolean
+          jumlah_halaman?: number | null
+          outline?: Json
+          presenter?: string | null
           created_by: string
           dibuat_pada?: string
           id?: string
@@ -728,6 +708,11 @@ export type Database = {
           urutan?: number
         }
         Update: {
+          deskripsi?: string | null
+          izinkan_unduh?: boolean
+          jumlah_halaman?: number | null
+          outline?: Json
+          presenter?: string | null
           created_by?: string
           dibuat_pada?: string
           id?: string
@@ -745,77 +730,6 @@ export type Database = {
             columns: ["material_id"]
             isOneToOne: false
             referencedRelation: "material"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      slides: {
-        Row: {
-          access_code: string | null
-          allow_download: boolean
-          created_at: string
-          description: string | null
-          file_type: Database["public"]["Enums"]["slide_file_type"]
-          file_url: string
-          id: string
-          is_active: boolean
-          is_protected: boolean
-          module_category: Database["public"]["Enums"]["slide_module"]
-          module_id: string | null
-          order_index: number
-          outline: Json
-          page_count: number | null
-          presenter: string | null
-          slug: string
-          title: string
-          updated_at: string
-        }
-        Insert: {
-          access_code?: string | null
-          allow_download?: boolean
-          created_at?: string
-          description?: string | null
-          file_type: Database["public"]["Enums"]["slide_file_type"]
-          file_url: string
-          id?: string
-          is_active?: boolean
-          is_protected?: boolean
-          module_category: Database["public"]["Enums"]["slide_module"]
-          module_id?: string | null
-          order_index?: number
-          outline?: Json
-          page_count?: number | null
-          presenter?: string | null
-          slug: string
-          title: string
-          updated_at?: string
-        }
-        Update: {
-          access_code?: string | null
-          allow_download?: boolean
-          created_at?: string
-          description?: string | null
-          file_type?: Database["public"]["Enums"]["slide_file_type"]
-          file_url?: string
-          id?: string
-          is_active?: boolean
-          is_protected?: boolean
-          module_category?: Database["public"]["Enums"]["slide_module"]
-          module_id?: string | null
-          order_index?: number
-          outline?: Json
-          page_count?: number | null
-          presenter?: string | null
-          slug?: string
-          title?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "slides_module_id_fkey"
-            columns: ["module_id"]
-            isOneToOne: false
-            referencedRelation: "slide_modules"
             referencedColumns: ["id"]
           },
         ]
@@ -874,10 +788,6 @@ export type Database = {
       get_public_module: { Args: { p_slug: string }; Returns: Json }
       get_public_slide: { Args: { p_slug: string }; Returns: Json }
       increment_portfolio_view: { Args: { p_slug: string }; Returns: undefined }
-      set_slide_access_code: {
-        Args: { p_code: string; p_slide_id: string }
-        Returns: undefined
-      }
       submit_contact_as_service: {
         Args: {
           p_body: string
@@ -887,10 +797,6 @@ export type Database = {
           p_subject: string
         }
         Returns: string
-      }
-      verify_slide_access: {
-        Args: { p_code: string; p_slug: string }
-        Returns: Json
       }
       verify_slide_access_as_service: {
         Args: {

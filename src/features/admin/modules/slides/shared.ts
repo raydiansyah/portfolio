@@ -18,7 +18,8 @@ export const FORMATS: Record<SlideFileType, { short: string; long: string; icon:
   ppt: { short: 'PPT', long: 'PPT / PowerPoint', icon: Presentation, accept: '.pptx,.ppt', maxMb: 100, hint: '.pptx or .ppt up to 100 MB' },
 }
 
-export const FILE_TYPES = Object.keys(FORMATS) as SlideFileType[]
+/** Formats the slide tables accept (mime_type is text/html or application/pdf). */
+export const FILE_TYPES: SlideFileType[] = ['html', 'pdf']
 
 export const SLUG_RE = /^[a-z0-9-]+$/
 export const PIN_RE = /^\d{6}$/
