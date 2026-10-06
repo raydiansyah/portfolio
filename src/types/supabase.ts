@@ -190,8 +190,16 @@ export interface ContentModule {
 
 /** Result of `rpc('get_public_module', { p_slug })`: published module + its active slides (safe fields only). */
 export interface PublicModule {
-  module: Pick<ContentModule, 'slug' | 'title' | 'description' | 'category' | 'cover_url'>
+  module: PublicModuleMeta
   slides: (PublicSlideMeta & { order_index: number; page_count: number | null })[]
+}
+
+export type PublicModuleMeta = Pick<ContentModule, 'slug' | 'title' | 'description' | 'category' | 'cover_url'> & { is_protected: boolean }
+
+/** `slide-access` with `{ module, code }`: the unlocked module and every visible slide (file keys included). */
+export interface ModuleGrant {
+  module: PublicModuleMeta
+  slides: Slide[]
 }
 
 /** slide_access_logs — one row per successful access (written by the RPC, not by clients). */
@@ -212,7 +220,10 @@ export interface SlideAccessGrant {
 }
 
 /** Public-safe projection used by the gate before access is granted. */
-export type PublicSlideMeta = Pick<Slide, 'slug' | 'title' | 'description' | 'presenter' | 'file_type' | 'is_protected' | 'module_category'>
+export type PublicSlideMeta = Pick<Slide, 'slug' | 'title' | 'description' | 'presenter' | 'file_type' | 'is_protected' | 'module_category'> & {
+  /** Slug of the slide's module (null = standalone deck). Only on `get_public_slide`. */
+  module_slug?: string | null
+}
 
 type Insert<T, Optional extends keyof T> = Omit<T, Optional> & Partial<Pick<T, Optional>>
 type Generated = 'id' | 'created_at' | 'updated_at'

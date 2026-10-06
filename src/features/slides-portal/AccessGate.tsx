@@ -3,22 +3,30 @@ import type { ClipboardEvent, FormEvent, KeyboardEvent } from 'react'
 import { Anchor, KeyRound, Loader2, Lock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { verifySlideAccess } from '@/features/admin/data/slides'
+import type { AccessReason } from '@/features/admin/data/slides'
 import { cn } from '@/lib/utils'
-import type { PublicSlideMeta, SlideAccessGrant } from '@/types/supabase'
 import { ThemeToggle } from './ThemeToggle'
-import { MODULE_LABEL } from './types'
 
 const LEN = 6
 const empty = () => Array<string>(LEN).fill('')
 const SHAKE_CSS = '@keyframes slides-shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}'
 
 interface Props {
-  meta: PublicSlideMeta
-  onGranted: (grant: SlideAccessGrant) => void
+  eyebrow: string
+  title: string
+  subtitle?: string | null
+  /** Check the code; resolve null when access was granted (the caller moves on). */
+  verify: (code: string) => Promise<AccessReason | null>
 }
 
-export function AccessGate({ meta, onGranted }: Props) {
+const MESSAGES: Record<Exclude<AccessReason, 'wrong-code'>, string> = {
+  'rate-limit': 'Too many attempts. Wait a minute, then try again.',
+  expired: 'Access has ended. Contact the presenter if you still need it.',
+  'not-found': 'This is no longer available.',
+}
+
+/** Access-code screen shared by locked modules and standalone decks. */
+export function AccessGate({ eyebrow, title, subtitle, verify }: Props) {
   const [mode, setMode] = useState<'digits' | 'text'>('digits')
   const [digits, setDigits] = useState(empty)
   const [text, setText] = useState('')
@@ -34,19 +42,11 @@ export function AccessGate({ meta, onGranted }: Props) {
     if (busy || !code) return
     setBusy(true)
     setError('')
-    const res = await verifySlideAccess(meta.slug, code)
+    const reason = await verify(code).catch((): AccessReason => 'rate-limit')
     setBusy(false)
-    if (res.ok) return onGranted(res.grant)
-    if (res.reason === 'rate-limit') {
-      setError('Too many attempts. Wait a minute, then try again.')
-      return
-    }
-    if (res.reason === 'expired') {
-      setError('Access to this deck has ended. Contact the presenter if you still need it.')
-      return
-    }
-    if (res.reason === 'not-found') {
-      setError('This deck is no longer available.')
+    if (!reason) return
+    if (reason !== 'wrong-code') {
+      setError(MESSAGES[reason])
       return
     }
     setError('Incorrect code. Check it with your presenter and try again.')
@@ -150,11 +150,11 @@ export function AccessGate({ meta, onGranted }: Props) {
             <span className="grid size-12 place-items-center rounded-full bg-primary/10 text-primary">
               <Lock className="size-5" aria-hidden />
             </span>
-            <p className="hud-label text-muted-foreground">{MODULE_LABEL[meta.module_category]}</p>
+            <p className="hud-label text-muted-foreground">{eyebrow}</p>
             <h1 id="gate-title" className="text-xl font-semibold tracking-tight text-balance sm:text-2xl">
-              {meta.title}
+              {title}
             </h1>
-            {meta.presenter && <p className="text-sm text-muted-foreground">Presented by {meta.presenter}</p>}
+            {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
           </div>
 
           <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">

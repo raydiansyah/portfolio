@@ -1,6 +1,6 @@
 import { supabase, unwrap } from '@/lib/supabase'
 import type { Database } from '@/types/database.gen'
-import type { ContentModule, PublicSlideMeta, Slide, SlideAccessGrant, SlideAccessLog, SlideOutlineItem } from '@/types/supabase'
+import type { ContentModule, ModuleGrant, PublicSlideMeta, Slide, SlideAccessGrant, SlideAccessLog, SlideOutlineItem } from '@/types/supabase'
 
 /**
  * Slide repository shared by the admin Slide Manager and the public portal.
@@ -197,6 +197,21 @@ export async function verifySlideAccess(slug: string, code: string | null): Prom
   if (reason) return { ok: false, reason }
   throw new Error(error?.message ?? 'Slide access failed')
 }
+
+/** Unlock a whole module with one code; every slide comes back with its file key. */
+export async function verifyModuleAccess(
+  module: string,
+  code: string | null,
+): Promise<{ ok: true; grant: ModuleGrant } | { ok: false; reason: AccessReason }> {
+  const { data, error, response } = await sb().functions.invoke<ModuleGrant>('slide-access', { body: { module, code } })
+  if (!error && data) return { ok: true, grant: data }
+  const reason = response ? REASONS[response.status] : undefined
+  if (reason) return { ok: false, reason }
+  throw new Error(error?.message ?? 'Module access failed')
+}
+
+/** Viewer grant for one slide of an unlocked module (no extra request). */
+export const grantFor = (slide: Slide): SlideAccessGrant => ({ slide, signed_url: fileUrl(slide.file_url), expires_in: 60 * 60 })
 
 /** Generate a 6-digit PIN using the CSPRNG (never Math.random for access codes). */
 export function generatePin() {

@@ -8,6 +8,7 @@ import { getPublicSlide, verifySlideAccess } from '@/features/admin/data/slides'
 import type { PublicSlideMeta, SlideAccessGrant } from '@/types/supabase'
 import { AccessGate } from './AccessGate'
 import { ModulePage } from './ModulePage'
+import { MODULE_LABEL } from './types'
 import { ThemeToggle } from './ThemeToggle'
 import Viewer from './Viewer'
 
@@ -17,15 +18,20 @@ const subscribePath = (cb: () => void) => {
   window.addEventListener('popstate', cb)
   return () => window.removeEventListener('popstate', cb)
 }
-/** `/slides/m/<module>` is a module page; `/slides/<slug>` is a deck. Returned as a string so useSyncExternalStore compares by value. */
+/**
+ * `/slides/m/<module>[/<slide>]` is the module flow (list, or a deck playing
+ * inside it); `/slides/<slug>` is a deck link. Returned as a string so
+ * useSyncExternalStore compares by value.
+ */
 const readRoute = () => {
-  const mod = /^\/slides\/m\/([^/?#]+)/.exec(location.pathname)
-  if (mod) return `module:${decodeURIComponent(mod[1])}`
+  const mod = /^\/slides\/m\/([^/?#]+)(?:\/([^/?#]+))?/.exec(location.pathname)
+  if (mod) return `module:${decodeURIComponent(mod[1])}${mod[2] ? `/${decodeURIComponent(mod[2])}` : ''}`
   const m = /^\/slides\/([^/?#]+)/.exec(location.pathname)
   return m ? `slide:${decodeURIComponent(m[1])}` : null
 }
-function navigate(path: string) {
-  history.pushState(null, '', path)
+function navigate(path: string, replace = false) {
+  if (replace) history.replaceState(null, '', path)
+  else history.pushState(null, '', path)
   window.dispatchEvent(new PopStateEvent('popstate'))
 }
 
@@ -82,7 +88,10 @@ export default function SlidesPortal() {
   const route = useSyncExternalStore(subscribePath, readRoute, () => null)
   if (!route) return <EnterLink />
   const [kind, slug] = [route.slice(0, route.indexOf(':')), route.slice(route.indexOf(':') + 1)]
-  if (kind === 'module') return <ModulePage key={slug} slug={slug} onOpen={(s) => navigate(`/slides/${encodeURIComponent(s)}`)} />
+  if (kind === 'module') {
+    const [mod, playing = null] = slug.split('/')
+    return <ModulePage key={mod} slug={mod} playing={playing} navigate={navigate} />
+  }
   return <SlideRoute key={slug} slug={slug} />
 }
 
@@ -117,6 +126,8 @@ function SlideRoute({ slug }: { slug: string }) {
       const meta = await getPublicSlide(slug)
       if (!alive) return
       if (!meta) return setState({ kind: 'not-found' })
+      // Decks inside a module open through the module: code → module → list → play.
+      if (meta.module_slug) return navigate(`/slides/m/${encodeURIComponent(meta.module_slug)}`, true)
       if (meta.is_protected) return setState({ kind: 'gate', meta })
       // Open deck: no code needed, but the file URL still comes from the Edge Function.
       const res = await verifySlideAccess(slug, null)
@@ -137,7 +148,19 @@ function SlideRoute({ slug }: { slug: string }) {
     case 'not-found':
       return <NotFound slug={slug} />
     case 'gate':
-      return <AccessGate meta={state.meta} onGranted={grant} />
+      return (
+        <AccessGate
+          eyebrow={MODULE_LABEL[state.meta.module_category]}
+          title={state.meta.title}
+          subtitle={state.meta.presenter && `Presented by ${state.meta.presenter}`}
+          verify={async (code) => {
+            const res = await verifySlideAccess(slug, code)
+            if (!res.ok) return res.reason
+            grant(res.grant)
+            return null
+          }}
+        />
+      )
     case 'error':
       return (
         <CenteredPage>

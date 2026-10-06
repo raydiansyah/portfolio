@@ -22,3 +22,9 @@ export const MODULE_LABEL: Record<SlideModule, string> = {
 /** Highest page referenced by the outline — fallback count for decks without the postMessage protocol. */
 export const outlinePages = (grant: SlideAccessGrant) =>
   grant.slide.page_count ?? Math.max(1, ...grant.slide.outline.map((o) => o.page))
+
+/** Presenter zoom range (stage scale). */
+export const ZOOM_MIN = 1
+export const ZOOM_MAX = 3
+export const ZOOM_STEP = 0.25
+export const clampZoom = (z: number) => Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Math.round(z / ZOOM_STEP) * ZOOM_STEP))
