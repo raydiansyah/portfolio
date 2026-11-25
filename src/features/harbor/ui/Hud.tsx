@@ -1,4 +1,5 @@
-import { Moon, Sun, Video } from 'lucide-react'
+import { Moon, Sun, Video, Volume2, VolumeX } from 'lucide-react'
+import { toggleMuted, useMuted } from '../audio'
 import { actions } from '../controller'
 import { useHarbor } from '../store'
 import { DESTINATIONS, DESTINATION_BY_ID } from '../data/destinations'
@@ -29,6 +30,7 @@ export default function Hud({ isDark, onToggleTheme }: { isDark: boolean; onTogg
   const device = useHarbor((s) => s.inputDevice)
   const discoveredCount = useHarbor((s) => s.discovered.length)
   const cameraView = useHarbor((s) => s.cameraView)
+  const muted = useMuted()
 
   const loading = phase === 'loading'
   const covered = activePanel !== null || mapOpen
@@ -63,6 +65,16 @@ export default function Hud({ isDark, onToggleTheme }: { isDark: boolean; onTogg
             >
               <Video className="size-4" aria-hidden="true" />
               <span className="hidden sm:inline">{cameraView}</span>
+            </button>
+            <button
+              type="button"
+              onClick={toggleMuted}
+              aria-label={muted ? 'Turn boat sound on' : 'Mute boat sound'}
+              aria-pressed={!muted}
+              title={muted ? 'Sound off' : 'Sound on'}
+              className={GHOST_BTN}
+            >
+              {muted ? <VolumeX className="size-4" aria-hidden="true" /> : <Volume2 className="size-4" aria-hidden="true" />}
             </button>
             <button
               type="button"

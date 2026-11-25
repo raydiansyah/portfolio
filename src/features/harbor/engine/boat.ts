@@ -15,6 +15,9 @@ const BOAT_LENGTH = 8
 /** Fraction of hull height (without mast) that sits below the waterline. */
 const DRAFT = 0.55
 
+/** Approximate size of /models/boat.glb, for progress when the CDN hides Content-Length. */
+const BOAT_BYTES = 1_350_000
+
 export class BoatVisual {
   readonly root = new Group()
   /** Pitch/roll pivot inside root. */
@@ -48,7 +51,8 @@ export class BoatVisual {
   async load(url: string, onProgress: (p: number) => void, shadows: boolean) {
     const loader = new GLTFLoader()
     loader.setMeshoptDecoder(MeshoptDecoder)
-    const gltf = await loader.loadAsync(url, (e) => e.total && onProgress(e.loaded / e.total))
+    // Compressed responses (gzip/br on the CDN) report total = 0; fall back to the file's known size.
+    const gltf = await loader.loadAsync(url, (e) => onProgress(Math.min(1, e.loaded / (e.lengthComputable && e.total ? e.total : BOAT_BYTES))))
     const model = this.normalise(gltf.scene)
     model.traverse((o) => {
       if (o instanceof Mesh) {

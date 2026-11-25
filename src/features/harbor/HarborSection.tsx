@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { startBoatAudio } from './audio'
 import { actions, attachEngine, bindHistory, getEngine, panelFromHash } from './controller'
 import { DESTINATIONS } from './data/destinations'
 import { FEATURED_PROJECTS, PROJECTS } from './data/content'
@@ -81,9 +82,15 @@ export default function HarborSection({ isDark, onToggleTheme }: Props) {
     const container = host.current
     // Live content (Supabase) loads in parallel with the engine chunk; the boards on
     // Portfolio Island are drawn at engine creation, so wait for it (bounded, never throws).
+    harborStore.set({ loadProgress: 0.04 })
     const live = import('./data/live').then((m) => m.loadLiveContent())
-    void Promise.all([import('./engine/HarborEngine'), live]).then(async ([{ HarborEngine }]) => {
+    const chunk = import('./engine/HarborEngine').then((m) => {
+      harborStore.set((s) => ({ loadProgress: Math.max(s.loadProgress, 0.12) }))
+      return m
+    })
+    void Promise.all([chunk, live]).then(async ([{ HarborEngine }]) => {
       if (cancelled) return
+      harborStore.set((s) => ({ loadProgress: Math.max(s.loadProgress, 0.18) }))
       const engine = await HarborEngine.create({
         container,
         isDark: darkRef.current,
@@ -102,6 +109,9 @@ export default function HarborSection({ isDark, onToggleTheme }: Props) {
       engineRef.current = null
     }
   }, [webgl])
+
+  // Boat sound (starts on the first key/pointer press; browsers block autoplay).
+  useEffect(() => (webgl ? startBoatAudio() : undefined), [webgl])
 
   useEffect(() => {
     engineRef.current?.setTheme(isDark)

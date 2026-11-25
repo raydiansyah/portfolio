@@ -178,7 +178,7 @@ export class HarborEngine implements EngineHandle {
     this.renderer.setAnimationLoop(this.frame)
 
     const model = this.boat
-      .load('/models/boat.glb', (p) => harborStore.set({ loadProgress: p * 0.95 }), this.settings.shadows)
+      .load('/models/boat.glb', (p) => harborStore.set((s) => ({ loadProgress: Math.max(s.loadProgress, 0.2 + p * 0.78) })), this.settings.shadows)
       .catch((err) => console.warn('[harbor] boat model failed to load, keeping proxy', err))
     await Promise.race([model, new Promise((r) => setTimeout(r, 8000))])
     if (this.disposed) return

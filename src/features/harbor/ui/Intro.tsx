@@ -2,6 +2,27 @@ import { useEffect, useState } from 'react'
 import { useHarbor } from '../store'
 
 const AUTO_HIDE_MS = 7000
+/** The bar keeps moving between real milestones, easing toward (never past) this cap. */
+const CREEP_CAP = 0.92
+const CREEP_TAU_S = 6
+
+/**
+ * Displayed progress: the real value (chunk loaded, model bytes…) or a slow
+ * time-based creep, whichever is higher, so the bar never sits still at 0%.
+ */
+function useCreep(active: boolean, real: number) {
+  const [creep, setCreep] = useState(0)
+  useEffect(() => {
+    if (!active) return
+    const start = performance.now()
+    const id = window.setInterval(() => {
+      const t = (performance.now() - start) / 1000
+      setCreep(CREEP_CAP * (1 - Math.exp(-t / CREEP_TAU_S)))
+    }, 120)
+    return () => window.clearInterval(id)
+  }, [active])
+  return Math.max(real, creep)
+}
 
 /** Opening title card; fades once the visitor starts sailing (or after 7s). */
 export function Intro() {
@@ -22,7 +43,8 @@ export function Intro() {
 
   const loading = phase === 'loading'
   const visible = (!introDone || !hasMoved) && !timedOut && !activePanel
-  const pct = Math.round(Math.min(1, Math.max(0, loadProgress)) * 100)
+  const shown = useCreep(loading, loadProgress)
+  const pct = Math.round(Math.min(1, Math.max(0, loading ? shown : 1)) * 100)
 
   return (
     <div
